@@ -8,6 +8,10 @@
 #   Como checkear si un pedido es realizado o no, teniendo en cuenta que pedidos.csv no lo marca. Charlar con el grupo.
 #   
 
+import cv2
+import os
+import numpy as np
+
 def checkeo_pedidos_entregados(listado_pedidos: dict) -> dict: #Solución temporal hasta saber como checkear si un pedido fue entregado
     pedidos_entregados: dict = listado_pedidos.copy() #copio el dict original con TODOS los pedidos
     for i in listado_pedidos: #recorro dict
@@ -50,6 +54,14 @@ def articulo_mas_pedido():
     #Pre: Recibe la lista de cantidad_de_productos_pedidos y deberia recibir otra informacion mas que checkee cuantos fueron entregados.
     #Post: muestra cual es el articulo mas pedido y cuantos fueron entregados.
     return
+
+def imagenes_carpeta(carpeta):
+    #Pre: recibe la direccion de una carpeta
+    #Post: recorre y carga los archivos dentro de la carpeta recibida uno por uno
+    for filename in os.listdir(carpeta):
+        img = cv2.imread(os.path.join(carpeta,filename))
+        cv2.imshow("escaner", img)
+        cv2.waitKey(0)
 
 def main():
 
