@@ -55,11 +55,30 @@ def articulo_mas_pedido():
     #Post: muestra cual es el articulo mas pedido y cuantos fueron entregados.
     return
 
+def deteccion_colores(imagen):
+    #Pre: la imagen tiene que poder mutar su color al rango hsv.
+    #Post: recibe una imagen y verifica si hay alguno de los 5 colores preestablecidos.
+    hsv = cv2.cvtColor(imagen, cv2.COLOR_BGR2HSV)
+    colores_rango = {
+        "verde": ([40, 100, 100], [75, 255, 255]),
+        "negro": ([0, 0, 0], [0, 0, 10]),
+        "rojo": ([161, 155, 84], [179, 255, 255]),
+        "azul": ([94, 80, 2], [126, 255, 255]),
+        "amarillo": ([25, 100, 100], [30, 255, 255])}
+    for nombre_color, (lower, upper) in colores_rango.items():
+        lower = np.array(lower, dtype = np.uint8)
+        upper = np.array(upper, dtype = np.uint8)
+        mask = cv2.inRange(hsv, lower, upper)
+        resultado = cv2.bitwise_and(imagen, imagen, mask = mask)
+        if mask.any():
+            print(nombre_color)
+
 def imagenes_carpeta(carpeta):
-    #Pre: recibe la direccion de una carpeta
-    #Post: recorre y carga los archivos dentro de la carpeta recibida uno por uno
+    #Pre: tiene que ingresar una direccion que lleve a una carpeta con archivos dentro.
+    #Post: recorre y carga los archivos dentro de la carpeta recibida uno por uno.
     for filename in os.listdir(carpeta):
         img = cv2.imread(os.path.join(carpeta,filename))
+        deteccion_colores(img)
         cv2.imshow("escaner", img)
         cv2.waitKey(0)
 
