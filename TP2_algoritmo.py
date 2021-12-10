@@ -218,8 +218,143 @@ def articulo_mas_pedido(productos: dict, productos_entregados: dict) -> None:
 def volver_menu():
     input('Presione ENTER para volver al menu: ')
     
-def main():
+def load_yolo():
+    # Pos: levanta la red Neuronal con los archivos de pesos pre-entrenados de YoloV3, el archivo de configuración y el archivo de nombres
 
+    net = cv2.dnn.readNet("yolov3.weights", "yolov3.cfg")
+    classes: list = []
+    with open("coco.names", "r") as f:
+        classes = [line.strip() for line in f.readlines()]
+    layers_names = net.getLayerNames()
+    output_layers = [layers_names[i - 1] for i in net.getUnconnectedOutLayers()]
+
+    colors = np.random.uniform(0, 255, size=(len(classes), 3))
+    return net, classes, colors, output_layers
+
+def load_image(img_path):
+    # Pre: Debe recibir la ruta de una imegen
+    # Pos: lee la imagen  y cambia su tamaño  y retorna la imagen con las nuevas dimenciones ( alto, ancho..)
+
+    img = cv2.imread(img_path)
+    img = cv2.resize(img, None, fx=0.4, fy=0.4)
+    height, width, channels = img.shape
+
+    return img, height, width, channels
+
+def detect_objects(img, net, outputLayers):
+    # Pre: Recibe una imagen, y las capas de salida de la red
+    # Pos: Se aplica la  red neuronal sobre la imagen
+
+    blob = cv2.dnn.blobFromImage(img, scalefactor=0.00392, size=(320, 320), mean=(0, 0, 0), swapRB=True, crop=False)
+    net.setInput(blob)
+    outputs = net.forward(
+        outputLayers)  # devuelve una lista anidada con toda la info del onj detectado, ancho, alto etc
+    return blob, outputs
+
+def get_box_dimensions(outputs, height, width):
+    # Pre:
+    # Pos:
+
+    boxes = []
+    confs = []
+    class_ids = []
+    for output in outputs:
+        for detect in output:
+            scores = detect[5:]
+            # print(scores)
+            class_id = np.argmax(scores)
+            conf = scores[class_id]
+            if conf > 0.3:
+                center_x = int(detect[0] * width)
+                center_y = int(detect[1] * height)
+                w = int(detect[2] * width)
+                h = int(detect[3] * height)
+                x = int(center_x - w / 2)
+                y = int(center_y - h / 2)
+                boxes.append([x, y, w, h])
+                confs.append(float(conf))
+                class_ids.append(class_id)
+    return boxes, confs, class_ids
+
+def draw_labels(boxes, confs, colors, class_ids, classes, img):
+    # Pre:
+    # Pos:
+
+    indexes = cv2.dnn.NMSBoxes(boxes, confs, 0.5, 0.4)
+    for i in range(len(boxes)):
+        if i in indexes:
+            x, y, w, h = boxes[i]
+            label = str(classes[class_ids[i]])
+
+    return label
+
+def image_detect(img_path):
+    # Pre: Recibe la ruta de una imagen
+    # Pos: Invoca a distintas funciones para retonar la imagen detectada
+
+    model, classes, colors, output_layers = load_yolo()
+    image, height, width, channels = load_image(img_path)
+    blob, outputs = detect_objects(image, model, output_layers)
+    boxes, confs, class_ids = get_box_dimensions(outputs, height, width)
+    return draw_labels(boxes, confs, colors, class_ids, classes, image)
+
+def deteccion_colores(imagen) -> str:
+    hsv = cv2.cvtColor(imagen, cv2.COLOR_BGR2HSV)
+    colores_rango = {
+        "Verde": ([40, 100, 100], [75, 255, 255]),
+        "Negro": ([0, 0, 0], [0, 0, 10]),
+        "Rojo": ([161, 155, 84], [179, 255, 255]),
+        "Azul": ([94, 80, 2], [126, 255, 255]),
+        "Amarillo": ([25, 100, 100], [30, 255, 255])}
+    for nombre_color, (lower, upper) in colores_rango.items():
+        lower = np.array(lower)
+        upper = np.array(upper)
+        mask = cv2.inRange(hsv, lower, upper)
+        resultado = cv2.bitwise_and(imagen, imagen, mask = mask)
+        if mask.any():
+            color = nombre_color
+    return color
+
+def contadores_carpeta(objeto: str, color: str, botellas: dict, vasos: dict) -> dict:
+    if objeto == "bottle":
+        botellas[color] = botellas[color] + 1
+    elif objeto == "cup":
+        try:
+            vasos[color] = vasos[color] + 1
+        except KeyError:
+            pass
+    return botellas, vasos
+
+def verificacion_escaner(objeto: str) -> str:
+    if not objeto == "bottle" or objeto == "cup":
+        estado = "falla"
+        print("PROCESO DETENIDO, se reanudo en un minuto")
+    else:
+        estado = "ok"
+    return estado
+
+def imagenes_carpeta(carpeta, contador_botellas: dict, contador_vasos: dict):
+    for filename in os.listdir(carpeta):
+        img = cv2.imread(os.path.join(carpeta,filename))
+        objeto = image_detect(img)
+        verificacion = verificacion_escaner(objeto)
+        if not verificacion == "falla":
+            color = deteccion_colores(img)
+            contadores_carpeta(objeto, color, contador_botellas, contador_vasos)
+        cv2.imshow("escaner", img)
+        cv2.waitKey(0)
+
+def cantidades_txt(contador_botellas: dict, contador_vasos: dict) -> None:
+    with open("botellas.txt", "w") as b:
+        for key, value in contador_botellas.items():
+            b.write("%s %s\n" % (key, value))
+    with open("vasos.txt", "w") as v:
+        for key, value in contador_vasos.items():
+            v.write("%s %s\n" % (key, value))
+
+def main():
+    contadores_botellas: dict = {"Verde": 0, "Negro": 0, "Rojo": 0, "Azul": 0, "Amarillo": 0}
+    contadores_vasos: dict = {"Negro": 0, "Azul": 0}
     #Martín
 
     listado_pedidos: list = [[1,[1,11,2021],"Juan Alvarez", "Rosario", "Córdoba", 1334, "azul", 36, 5, "si"],#[NdePedido, fecha, cliente, ciudad, provincia, cod. articulo, color, cantidad, descuento, entregado]
@@ -279,6 +414,7 @@ def main():
   
    
     
-
+    imagenes_carpeta("TP_Arch_config/Lote0001", contadores_botellas, contadores_vasos)
+    cantidades_txt(contadores_botellas, contadores_vasos)
 
 main()
