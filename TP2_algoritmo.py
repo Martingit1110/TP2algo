@@ -293,7 +293,31 @@ def images_folder(folder):
         while imagen_detectada == 'cup' or imagen_detectada == 'bottle':
             #deteccion_colores(image_path) # esto retorna el color
 
+  
 
+def contador_objetos( objeto_detectada: str, color: str):
+    
+    #Pre: Recibe como parametro el objeto detectado y el color 
+    #Pos: Crea un contador/ Diccionario por objeto, teniendo como clave el color y valor la cantidad 
+    
+    contador_vasos: dict = {}
+    contador_termos: dict = {}
+
+    if objeto_detectada == "vasos":
+        if color in contador_vasos.values():
+            contador_vasos[color] += 1
+
+        else:
+            contador_vasos[color] = 1
+
+    else:
+        if color in contador_termos.values():
+            contador_vasos[color] += 1
+
+        else:
+            contador_termos[color] = 1
+
+            
 
 def main():
     listado_pedidos: dict = {1: [1 / 11 / 2021, "Juan Alvarez", "Villa María", "Córdoba", 1334, "Azul", 36, 5, "si"],
