@@ -317,7 +317,18 @@ def contador_objetos( objeto_detectada: str, color: str):
         else:
             contador_termos[color] = 1
 
-            
+ 
+
+def crear_archivo_txt (diccionario_contador: dict, mensaje: str):
+    # Pre:
+    # Pos: crear un archivo.txt donde se guardara la cantidad de botellas o vasos procesadas por color. 
+
+    archivo = open(mensaje, 'w')
+    for clave, valor in diccionario_contador.items():
+        archivo.write(" {} :{}".format(clave, valor) + "\n")
+    archivo.close()
+
+
 
 def main():
     listado_pedidos: dict = {1: [1 / 11 / 2021, "Juan Alvarez", "Villa María", "Córdoba", 1334, "Azul", 36, 5, "si"],
