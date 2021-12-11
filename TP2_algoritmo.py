@@ -96,7 +96,6 @@ def ABM(dir: str) -> str:
     return dir
 
 #Martín
-
 def crear_lista_pedidos_entregados(listado_pedidos: list) -> list:
     lista_entregados: list = [] #lista vacia
     for sublista in listado_pedidos: #recorro sublista 
@@ -111,41 +110,84 @@ def crear_lista_pedidos_no_entregados(listado_pedidos: list) -> list:
             lista_no_entregados.append(sublista)
     return lista_no_entregados
 
-def pedidos_realizados(lista_pedidos_entregados: list) -> None:
+def ordenar_pedidos(listado_pedidos: list) -> list:
+    listado_pedidos_ordenado: list = []
+    for item in listado_pedidos:
+        if item[9] == "si":
+            listado_pedidos_ordenado.append(item)
+    listado_pedidos_ordenado = ordenamiento_burbuja(listado_pedidos_ordenado)
+    return listado_pedidos_ordenado
+
+def ordenamiento_burbuja(listado_pedidos_ordenado):
+    orden: bool = False
+    while (orden == False):
+        orden = True
+        for i in range(len(listado_pedidos_ordenado) - 1):
+            dia = listado_pedidos_ordenado[i][1][0]
+            mes = listado_pedidos_ordenado[i][1][1]
+            anio = listado_pedidos_ordenado[i][1][2]
+
+            diaSig = listado_pedidos_ordenado[i + 1][1][0]
+            mesSig = listado_pedidos_ordenado[i + 1][1][1]
+            anioSig = listado_pedidos_ordenado[i + 1][1][2]
+           
+            if anio > anioSig:
+                intercambiar(listado_pedidos_ordenado,i)
+                orden = False
+
+            elif anio == anioSig and mes > mesSig:
+                intercambiar(listado_pedidos_ordenado,i)
+                orden = False
+
+            elif anio == anioSig and mes == mesSig and dia > diaSig:
+                intercambiar(listado_pedidos_ordenado,i)
+                orden = False
+
+    return listado_pedidos_ordenado
+
+def intercambiar(listado_pedidos_ordenado, index):
+    aux: list = listado_pedidos_ordenado[index]
+    listado_pedidos_ordenado[index] = listado_pedidos_ordenado[index + 1]
+    listado_pedidos_ordenado[index + 1] = aux
+    
+
+def pedidos_realizados(listado_pedidos_ordenado: list) -> None:
     #Pre: recibe todos los pedidos realizados (todavia no se en que formato, es probable que en dict)"
     #Post: Printea los pedidos realizados, en orden de antiguedad y devuelve la cantidad de pedidos realizados en numero. 
-    numero_pedidos_entregados: int = 0 #Cantidad de pedidos inicializado
-    lista_ordenada: list = []
-    fecha_antigüedad: list = [32,13,3000] #día, mes, año
-    for sublista in lista_pedidos_entregados: #recorre lista
-        if sublista[1][2] < fecha_antigüedad[2]:
-           fecha_antigüedad[2] = sublista[1][2]
-        elif sublista[1][2] == fecha_antigüedad[2]:
-            if sublista[1][1] < fecha_antigüedad[1]:
-                fecha_antigüedad[1] = sublista[1][1]
-        elif sublista[1][2] == fecha_antigüedad[2]:
-            if sublista[1][1] == fecha_antigüedad[1]:
-                if sublista[1][0] < fecha_antigüedad[0]:
-                    fecha_antigüedad[0] = sublista[1][0]
-    print(fecha_antigüedad)
-
-
-
-
-        #numero_pedidos_entregados += 1 #Cuenta los pedidos realizados 
-        
-    #print(lista_pedidos_entregados) # printea la lista por orden de antigüedad.
+    numero_pedidos_entregados: int = 0
+    numero_de_pedido: int = 0
+    for i in range(len(listado_pedidos_ordenado)):
+        if listado_pedidos_ordenado[i][0] != numero_de_pedido:
+            numero_pedidos_entregados += 1
+            numero_de_pedido = listado_pedidos_ordenado[i][0]
     print(f"La cantidad de pedidos realizados es: {numero_pedidos_entregados}") #printea la cantidad de pedidos realizados.
+    print(f"A continuación se mostrará la lista por orden de antigüedad:\n{listado_pedidos_ordenado}")
 
 def pedidos_rosario(lista_pedidos_entregados: list) -> None:
     #Pre: recibir los pedidos completados
     #Post: filtrea los que tienen como ciudad rosario, los muestra y los valoriza
     pedidos_rosario : list = [] #lista vacia
-    print(len(lista_pedidos_entregados))
+    precio_botella: int = 15
+    precio_vaso: int = 8
+    dicc_valores_por_pedido: dict = {}
     for i in range(len(lista_pedidos_entregados)): #recorro dicc
         if lista_pedidos_entregados[i][3] == "Rosario": #si la ciudad es Rosario
             pedidos_rosario.append(lista_pedidos_entregados[i]) # Lo agrega a la lista vacia
-    print(pedidos_rosario)
+    for i in range(len(pedidos_rosario)):
+        valor_pedido: float = 0
+        if pedidos_rosario[i][5] == 1334:
+            if pedidos_rosario[i][8] != 0:
+                valor_pedido += precio_botella * pedidos_rosario[i][7] - (15 * pedidos_rosario[i][7]) / pedidos_rosario[i][8] # valor_producto * cantidad de producto pedido - descuento
+            else:
+                valor_pedido += precio_botella * pedidos_rosario[i][7]
+        elif pedidos_rosario[i][5] == 568:
+            if pedidos_rosario[i][8] != 0:
+                valor_pedido += precio_vaso * pedidos_rosario[i][7] - (15 * pedidos_rosario[i][7]) / pedidos_rosario[i][8]
+            else:
+                valor_pedido += precio_botella * pedidos_rosario[i][7]
+        dicc_valores_por_pedido.update({pedidos_rosario[i][0]: valor_pedido}) 
+    print(f"A continuación se mostrará la los pedidos que fueron entregados en la ciudad de Rosario:\n {pedidos_rosario}")
+    print(f"Se mostrará el valor en dolares de cada pedido entregado:\nNumero de pedido: valor\n{dicc_valores_por_pedido}")
     return
 
 
@@ -217,6 +259,7 @@ def articulo_mas_pedido(productos: dict, productos_entregados: dict) -> None:
 
 def volver_menu():
     input('Presione ENTER para volver al menu: ')
+
     
 def load_yolo():
     # Pos: levanta la red Neuronal con los archivos de pesos pre-entrenados de YoloV3, el archivo de configuración y el archivo de nombres
@@ -395,13 +438,16 @@ def main():
             dir_abm = ABM(dir_abm)
             volver_menu()
         elif int(accion) == 2:
-            return #ivan
+            volver_menu() #ivan
         elif int(accion) == 3:
-            return # ivan
+            volver_menu() # ivan
         elif int(accion) == 4:
-            pedidos_realizados(lista_pedidos_entregados)
+            listado_pedidos_ordenado: list = ordenar_pedidos(listado_pedidos)
+            pedidos_realizados(listado_pedidos_ordenado)
+            volver_menu()
         elif int(accion) == 5:
             pedidos_rosario(lista_pedidos_entregados)
+            volver_menu()
         elif int(accion) == 6:
             cantidad_de_productos_pedidos(listado_pedidos, productos)
             cantidad_de_productos_entregados(lista_pedidos_entregados, productos_entregados)
