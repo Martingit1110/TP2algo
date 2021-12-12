@@ -507,16 +507,9 @@ def main():
 
         if int(accion) == 1:
 
-            if pedir_ruta_abm == 0:
-                print('Por favor, ingrese la ruta en donde se encuentra su archivo de pedidos usando " \ "')
-                print('Ejemplo: D:\Documentos\Python Proyectos\prueba')
-                dir_abm = input('')
-                while not os.path.isdir(dir_abm):
-                    dir_abm = input('Directorio invalido, pruebe nuevamente: ')
-                pedir_ruta_abm = 1
-
             direccion_archivo = ABM(direccion_archivo)
             volver_menu() #ivan
+            
         elif int(accion) == 2:
             print('Zonas:\n1: Norte\n2: Centro\n3: Sur')
             accion = input('Para que zona desea ver el recorrido? 1/2/3: ')
