@@ -312,15 +312,15 @@ def pedidos_rosario(lista_pedidos_entregados: list) -> None:
             pedidos_rosario.append(lista_pedidos_entregados[i]) # Lo agrega a la lista vacia
     for i in range(len(pedidos_rosario)):
         valor_pedido: float = 0
-        if pedidos_rosario[i][5] == 1334:
-            if pedidos_rosario[i][8] != 0:
-                valor_pedido += precio_botella * pedidos_rosario[i][7] - (15 * pedidos_rosario[i][7]) / pedidos_rosario[i][8] # valor_producto * cantidad de producto pedido - descuento
-            else:
+        if pedidos_rosario[i][5] == 1334: #si es una botella
+            try: #si aplica descuento
+                valor_pedido += precio_botella * pedidos_rosario[i][7] - (15 * pedidos_rosario[i][7]) / pedidos_rosario[i][8]
+            except ZeroDivisionError: #si no aplica descuento
                 valor_pedido += precio_botella * pedidos_rosario[i][7]
-        elif pedidos_rosario[i][5] == 568:
-            if pedidos_rosario[i][8] != 0:
+        elif pedidos_rosario[i][5] == 568: #si es un vaso
+            try: 
                 valor_pedido += precio_vaso * pedidos_rosario[i][7] - (15 * pedidos_rosario[i][7]) / pedidos_rosario[i][8]
-            else:
+            except ZeroDivisionError:
                 valor_pedido += precio_botella * pedidos_rosario[i][7]
         dicc_valores_por_pedido.update({pedidos_rosario[i][0]: valor_pedido}) 
     print(f"A continuación se mostrará la los pedidos que fueron entregados en la ciudad de Rosario:\n {pedidos_rosario}")
