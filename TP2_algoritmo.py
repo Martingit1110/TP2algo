@@ -314,7 +314,7 @@ def pedidos_rosario(lista_pedidos_entregados: list) -> None:
         valor_pedido: float = 0
         if pedidos_rosario[i][5] == 1334: #si es una botella
             try: #si aplica descuento
-                valor_pedido += precio_botella * pedidos_rosario[i][7] - (15 * pedidos_rosario[i][7]) / pedidos_rosario[i][8]
+                valor_pedido += precio_botella * pedidos_rosario[i][7] - (15 * pedidos_rosario[i][7]) / pedidos_rosario[i][8] # valor_producto * cantidad de producto pedido - descuento
             except ZeroDivisionError: #si no aplica descuento
                 valor_pedido += precio_botella * pedidos_rosario[i][7]
         elif pedidos_rosario[i][5] == 568: #si es un vaso
