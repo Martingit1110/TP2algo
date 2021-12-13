@@ -676,16 +676,25 @@ def main():
             lista_pedidos_no_entregados: list = crear_lista_pedidos_no_entregados(listado_pedidos)
             volver_menu() 
         elif int(accion) == 4:
-            listado_pedidos_ordenado: list = ordenar_pedidos(listado_pedidos)
-            pedidos_realizados(listado_pedidos_ordenado)
+            if not os.path.isfile(f'{dir}\pedidos_realizados.csv'):
+                print("Todavia el programa no tiene la información de que pedidos fueron entregados. En el menú, elija la opción \"3\" para actualizar los pedidos entregados.")
+            else:
+                listado_pedidos_ordenado: list = ordenar_pedidos(listado_pedidos)
+                pedidos_realizados(listado_pedidos_ordenado)
             volver_menu()
         elif int(accion) == 5:
-            pedidos_rosario(lista_pedidos_entregados)
+            if not os.path.isfile(f'{dir}\pedidos_realizados.csv'):
+                print("Todavia el programa no tiene la información de que pedidos fueron entregados. En el menú, elija la opción \"3\" para actualizar los pedidos entregados.")
+            else:
+                pedidos_rosario(lista_pedidos_entregados)
             volver_menu()
         elif int(accion) == 6:
-            cantidad_de_productos_pedidos(listado_pedidos, productos)
-            cantidad_de_productos_entregados(lista_pedidos_entregados, productos_entregados)
-            articulo_mas_pedido(productos, productos_entregados)
+            if not os.path.isfile(f'{dir}\pedidos_realizados.csv'):
+                print("Todavia el programa no tiene la información de que pedidos fueron entregados. En el menú, elija la opción \"3\" para actualizar los pedidos entregados.")
+            else:
+                cantidad_de_productos_pedidos(listado_pedidos, productos)
+                cantidad_de_productos_entregados(lista_pedidos_entregados, productos_entregados)
+                articulo_mas_pedido(productos, productos_entregados)
             volver_menu()
         elif int(accion) == 7:
             print("Abandonando el menú...")
