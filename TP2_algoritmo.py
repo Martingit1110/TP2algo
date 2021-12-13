@@ -384,7 +384,6 @@ def intercambiar(listado_pedidos_ordenado, index):
     listado_pedidos_ordenado[index] = listado_pedidos_ordenado[index + 1]
     listado_pedidos_ordenado[index + 1] = aux
     
-
 def pedidos_realizados(listado_pedidos_ordenado: list) -> None:
     #Pre: recibe todos los pedidos realizados en formato de lista"
     #Post: Printea los pedidos realizados, en orden de antiguedad y devuelve la cantidad de pedidos realizados en numero. 
@@ -408,22 +407,41 @@ def pedidos_rosario(lista_pedidos_entregados: list) -> None:
         if lista_pedidos_entregados[i][3] == "Rosario": #si la ciudad es Rosario
             pedidos_rosario.append(lista_pedidos_entregados[i]) # Lo agrega a la lista vacia
     for i in range(len(pedidos_rosario)):
-        valor_pedido: float = 0
+        valor_producto: float = 0
         if pedidos_rosario[i][5] == 1334: #si es una botella
             try: #si aplica descuento
-                valor_pedido += precio_botella * pedidos_rosario[i][7] - (15 * pedidos_rosario[i][7]) / pedidos_rosario[i][8] # valor_producto * cantidad de producto pedido - descuento
+                valor_producto += precio_botella * pedidos_rosario[i][7] - (15 * pedidos_rosario[i][7]) / pedidos_rosario[i][8] # valor_producto * cantidad de producto pedido - descuento
+                pedidos_rosario[i].append(valor_producto)
             except ZeroDivisionError: #si no aplica descuento
-                valor_pedido += precio_botella * pedidos_rosario[i][7]
+                valor_producto += precio_botella * pedidos_rosario[i][7]
+                pedidos_rosario[i].append(valor_producto)
         elif pedidos_rosario[i][5] == 568: #si es un vaso
             try: 
-                valor_pedido += precio_vaso * pedidos_rosario[i][7] - (15 * pedidos_rosario[i][7]) / pedidos_rosario[i][8]
+                valor_producto += precio_vaso * pedidos_rosario[i][7] - (15 * pedidos_rosario[i][7]) / pedidos_rosario[i][8]
+                pedidos_rosario[i].append(valor_producto)
             except ZeroDivisionError:
-                valor_pedido += precio_botella * pedidos_rosario[i][7]
-        dicc_valores_por_pedido.update({pedidos_rosario[i][0]: valor_pedido}) 
+                valor_producto += precio_botella * pedidos_rosario[i][7]
+                pedidos_rosario[i].append(valor_producto)
+    valor_pedido_lista: list = valores_por_pedido(pedidos_rosario)
+    for i in range(len(valor_pedido_lista)):
+        dicc_valores_por_pedido.update({i + 1: valor_pedido_lista[i]}) 
     print(f"A continuación se mostrarán los pedidos que fueron entregados en la ciudad de Rosario:\n {pedidos_rosario}")
     print(f"Se mostrará el valor en dolares de cada pedido entregado:\nNumero de pedido: valor\n{dicc_valores_por_pedido}")
     
-
+def valores_por_pedido(pedidos_rosario: list) -> list:
+    valor_pedido_lista: list = []
+    valor_pedido: float = 0
+    numero_de_pedido: int = 1
+    for i in range(len(pedidos_rosario)):
+        if pedidos_rosario[i][0] == numero_de_pedido:
+            valor_pedido += pedidos_rosario[i][10]
+        else:
+            valor_pedido_lista.append(valor_pedido)
+            valor_pedido = 0
+            valor_pedido += pedidos_rosario[i][10]
+            numero_de_pedido = pedidos_rosario[i][0]
+    valor_pedido_lista.append(valor_pedido)
+    return valor_pedido_lista
 
 def cantidad_de_productos_pedidos(listado_pedidos: list, productos: dict) -> dict:
     #Pre: recibe los pedidos
@@ -495,8 +513,7 @@ def articulo_mas_pedido(productos: dict, productos_entregados: dict) -> None:
 
 def volver_menu():
     input('Presione ENTER para volver al menu: ')
-
-    
+ 
 def load_yolo():
     # Pos: levanta la red Neuronal con los archivos de pesos pre-entrenados de YoloV3, el archivo de configuración y el archivo de nombres
 
