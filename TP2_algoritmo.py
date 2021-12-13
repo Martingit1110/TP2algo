@@ -1,10 +1,9 @@
-#Ivan
-
 import cv2
 import os
 import numpy as np
 from geopy import distance
 
+#Ivan
 def ABM(dir: str) -> str:
     '''Toma direccion de archivo pedidos y la devuelve.
     Permite modificar, agregar o eliminir pedidos'''
@@ -101,7 +100,7 @@ def ABM(dir: str) -> str:
 
 def recorrido(zona: dict, palabra: str, dir: str, imprimir: str) -> list:
     '''Toma el diccionario para la zona correspondiente, la palabra norte/centro/sur, direccion de archivo e imprimir como string de si/no
-    Devuelve un listado de las ciudades ordenadas por recorrido mas óptimo para usarse en la funcion de procesado de pedidos'''
+        Devuelve un listado de las ciudades ordenadas por recorrido mas óptimo para usarse en la funcion de procesado de pedidos'''
     # Listado para el procesado de pedidos
     procesado_pedidos_lista: list = []
     # Latitud, Longitud
@@ -167,9 +166,41 @@ def recorrido(zona: dict, palabra: str, dir: str, imprimir: str) -> list:
     archivo_pedidos.close()
     return procesado_pedidos_lista
 
+def pedidos_entregados(registros: dict, dir: str):
+    '''Toma diccionario de registros como valores para las claves si y no, tambien direccion de carpeta de archivos.
+    Crea archivo pedidos_realizados.csv con los pedidos con flag de entregados si/no'''
+    lineas_pedidos2: list = []
+    archivo_pedidos = open(f'{dir}\pedidos.csv', 'r', encoding="UTF-8")
+    # Lee linea a linea el archivo pedidos.csv para obtener los registros y comparar con el dict registros
+    for registro, linea in enumerate(archivo_pedidos):
+        if registro == 0 and not os.path.isfile(f'{dir}\pedidos_realizados.csv'):
+            lineas_pedidos2.append(linea)
+        if registro in registros.get('si'):
+            linea = linea.rstrip('\n')
+            linea = linea + ',si\n'
+            lineas_pedidos2.append(linea)
+
+        elif registro in registros.get('no'):
+            linea = linea.rstrip('\n')
+            linea = linea + ',no\n'
+            lineas_pedidos2.append(linea)
+
+    archivo_pedidos.close()
+    # Crea nuevo archivo (si no existe) con el flag de entregado si/no
+    if not os.path.isfile(f'{dir}\pedidos_realizados.csv'):
+        archivo_pedidos = open(f'{dir}\pedidos_realizados.csv', 'w', encoding="UTF-8")
+        archivo_pedidos.writelines(lineas_pedidos2)
+        archivo_pedidos.close()
+    elif os.path.isfile(f'{dir}\pedidos_realizados.csv'):
+        archivo_pedidos = open(f'{dir}\pedidos_realizados.csv', 'a', encoding="UTF-8")
+        archivo_pedidos.writelines(lineas_pedidos2)
+        archivo_pedidos.close()
+
+
+
 def procesado_pedidos(zona: dict, dir: str, utilitario_usado: int, palabra: str) -> int:
     '''Toma el diccionario para la zona correspondiente, direccion de archivo, la palabra norte/centro/sur, y el numero de utilitario ya usado para no tenerlo en cuenta en la
-    próxima corrida. Devuelve el numero de utilitario usado.'''
+        próxima corrida. Devuelve el numero de utilitario usado.'''
     utilitarios: dict = {1: 600, 2: 1000, 3: 500, 4: 2000}  # num_utilitario: kilos
     utilitarios.pop(utilitario_usado, None)
     articulos: dict = {1334: [0.450, 0], 568: [0.350, 0]}  # num_art: [kilos, cantidad]
@@ -180,43 +211,53 @@ def procesado_pedidos(zona: dict, dir: str, utilitario_usado: int, palabra: str)
 
     ciudades_pedidos: list = []
 
+    lineas_pedidos: list = [] # Para marcar pedidos entregados o no
+    lineas_si_no: dict = {'si': [], 'no': []}
+
     archivo_pedidos = open(f'{dir}\pedidos.csv', 'r', encoding="UTF-8")
 
     # Lee linea a linea el archivo pedidos.csv para obtener los pedidos de zona {palabra}
     for registro, linea in enumerate(archivo_pedidos):
         linea = linea.split(',')
-        if peso_final < max(utilitarios.values()):
+        if linea[4].lower() in zona.keys():
 
-            if linea[4].lower() in zona.keys():
-
-                nueva_cantidad = articulos[int(linea[5])][1] + int(linea[7])
-                if int(linea[5]) == 1334:
-                    peso_final = (articulos[1334][0] * nueva_cantidad) + (articulos[568][0] * articulos[568][1])
+            nueva_cantidad = articulos[int(linea[5])][1] + int(linea[7])
+            if int(linea[5]) == 1334:
+                peso_final = (articulos[1334][0] * nueva_cantidad) + (articulos[568][0] * articulos[568][1])
 
 
-                elif int(linea[5]) == 568:
-                    peso_final = (articulos[1334][0] * articulos[1334][1]) + (articulos[568][0] * nueva_cantidad)
+            elif int(linea[5]) == 568:
+                peso_final = (articulos[1334][0] * articulos[1334][1]) + (articulos[568][0] * nueva_cantidad)
 
-                if peso_final < max(utilitarios.values()):
-                    # Calcula resta entre pesos de utilitarios y peso de articulos actuales
-                    for i in utilitarios.keys():
-                        resta = utilitarios[i] - peso_final
-                        if 0 <= resta < peso_referencia:
-                            articulos[int(linea[5])][1] = nueva_cantidad
-                            utilitario_asignado = i
-                            peso_referencia = resta
-                            ciudades_pedidos.append(linea[3].lower())
-    peso_final = (articulos[1334][0] * articulos[1334][1]) + (articulos[568][0] * articulos[568][1])
+            if peso_final <= max(utilitarios.values()):
+                # Calcula resta entre pesos de utilitarios y peso de articulos actuales
+                for i in utilitarios.keys():
+                    resta = utilitarios[i] - peso_final
+                    if 0 <= resta < peso_referencia:
+                        articulos[int(linea[5])][1] = nueva_cantidad
+                        utilitario_asignado = i
+                        peso_referencia = resta
+                        ciudades_pedidos.append(linea[3].lower())
+                        # Pedidos entregados
+                        lineas_si_no['si'].append(registro)
+            # Pedidos no entregados
+            elif peso_final > max(utilitarios.values()):
+                lineas_si_no['no'].append(registro)
     archivo_pedidos.close()
-    #Obtengo recorrido optimo
+
+    # Genero archivo pedidos nuevo con flag de entregados si/no
+    pedidos_entregados(lineas_si_no, dir)
+    # Obtengo recorrido optimo
     ciudades_recorridas = recorrido(zona, palabra.lower(), dir, 'no')
 
     ciudades_salida_txt: list = []
-    #Comparo recorrido optimo con las ciudades a las que sí podrán entregarse los pedidos
+    # Comparo recorrido optimo con las ciudades a las que sí podrán entregarse los pedidos
     for i in ciudades_recorridas:
         if i in ciudades_pedidos:
             ciudades_salida_txt.append(i)
     mostrar_ciudades = ", ".join(ciudades_salida_txt)
+
+    peso_final = (articulos[1334][0] * articulos[1334][1]) + (articulos[568][0] * articulos[568][1])
 
     if not os.path.isfile(f'{dir}\salida.txt') and utilitario_asignado != 0:
         archivo_salida = open(f'{dir}\salida.txt', 'w', encoding="UTF-8")
@@ -230,6 +271,30 @@ def procesado_pedidos(zona: dict, dir: str, utilitario_usado: int, palabra: str)
         archivo_salida.close()
 
     return utilitario_asignado
+
+def crea_lista_pedidos(dir: str) -> list:
+    '''Toma la direccion para archivos. Abre el archivo pedidos_realizados.csv y devuelve en lista los pedidos
+    con flag de entregado si/no'''
+    listado_pedidos: list = []
+
+    archivo_pedidos = open(f'{dir}\pedidos_realizados.csv', 'r', encoding="UTF-8")
+    for registro, linea in enumerate(archivo_pedidos):
+        if registro != 0:
+            linea = linea.rstrip('\n')
+            linea = linea.split(',')
+            # Transformo numeros de la lista a int
+            for i in range(0, len(linea)):
+                if linea[i].isnumeric() is True:
+                    linea[i] = int(linea[i])
+
+            linea[1] = linea[1].split('/')
+            for i in range(3):
+                if linea[1][i].isnumeric() is True:
+                    linea[1][i] = int(linea[1][i])
+
+            listado_pedidos.append(linea)
+    archivo_pedidos.close()
+    return listado_pedidos
 
 
 #Martín
@@ -535,17 +600,7 @@ def cantidades_txt(contador_botellas: dict, contador_vasos: dict) -> None:
 def main():
     contadores_botellas: dict = {"Verde": 0, "Negro": 0, "Rojo": 0, "Azul": 0, "Amarillo": 0}
     contadores_vasos: dict = {"Negro": 0, "Azul": 0}
-    #Martín
-
-    listado_pedidos: list = [[1,[1,11,2021],"Juan Alvarez", "Rosario", "Córdoba", 1334, "azul", 36, 5, "si"],#[NdePedido, fecha, cliente, ciudad, provincia, cod. articulo, color, cantidad, descuento, entregado]
-    [2, [2,11,2021], "Carlos Rodriguez", "Parana", "Santa Fe", 1334, "azul", 5, 0, "no"], [3, [2,11,2021], "Carlos Rodriguez", "Rosario", "Santa Fe", 1334, "negro", 5, 0, "no"]]
-    productos: dict = {}
-    productos_entregados: dict = {}
-    lista_pedidos_entregados: list = crear_lista_pedidos_entregados(listado_pedidos)
-    lista_pedidos_no_entregados: list = crear_lista_pedidos_no_entregados(listado_pedidos)
-    
-
-
+        
     #Ivan
     #Latitudes, Longitudes
     zona_norte = {'catamarca': [28.4696, 65.7795], 'cordoba': [31.4201, 64.1888],
@@ -570,7 +625,14 @@ def main():
     direccion_archivo = input('')
     while not os.path.isdir(direccion_archivo):
         direccion_archivo = input('Directorio invalido, pruebe nuevamente: ')
+    
+    
+    #Martín
 
+    productos: dict = {}
+    productos_entregados: dict = {}
+    
+    
     cerrar_menu: bool = False
 
     #Menú --> Ivan = 1, 2, 3
@@ -602,11 +664,15 @@ def main():
             if int(accion) == 3:
                 recorrido(zona_sur, 'sur', direccion_archivo, 'si')
             volver_menu() #ivan
-        elif int(accion) == 3:
+        elif int(accion) == 3: #ivan
             utilitario_asignado = procesado_pedidos(zona_norte, direccion_archivo, 0, 'Norte')
             utilitario_asignado = procesado_pedidos(zona_centro, direccion_archivo, utilitario_asignado, 'Centro')
             utilitario_asignado = procesado_pedidos(zona_sur, direccion_archivo, utilitario_asignado, 'Sur')
-            volver_menu() # ivan
+            #Martin
+            listado_pedidos: list = crea_lista_pedidos(direccion_archivo)
+            lista_pedidos_entregados: list = crear_lista_pedidos_entregados(listado_pedidos)
+            lista_pedidos_no_entregados: list = crear_lista_pedidos_no_entregados(listado_pedidos)
+            volver_menu() 
         elif int(accion) == 4:
             listado_pedidos_ordenado: list = ordenar_pedidos(listado_pedidos)
             pedidos_realizados(listado_pedidos_ordenado)
