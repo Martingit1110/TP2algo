@@ -2,6 +2,7 @@ import cv2
 import os
 import numpy as np
 from geopy import distance
+import unicodedata
 
 #Ivan
 def ABM(dir: str) -> str:
@@ -38,7 +39,7 @@ def ABM(dir: str) -> str:
             if registro == int(num_pedido):
                 linea = linea.split(',')
                 print('Datos del pedido: ')
-
+                # Muestra datos enumerados
                 for i in range(0, len(pedidos_titulos)):
                     print(f'{conteo_registro}: {pedidos_titulos[i]} - {linea[i]}')
                     conteo_registro += 1
@@ -46,8 +47,11 @@ def ABM(dir: str) -> str:
                 accion = input('Cual dato desea modificar? Escriba numero: ')
                 while accion.isnumeric() is False or int(accion) not in (1, 2, 3, 4, 5, 6, 7, 8, 9):
                     accion: str = input('Ingrese una opcion valida: ')
-
+                # Modifica
                 valor = input('Ingrese nuevo valor: ')
+                if int(accion) == 5:
+                    # Remueve tildes para provincias
+                    valor = unicodedata.normalize("NFKD", valor).encode("ascii", "ignore").decode("ascii")
                 linea[int(accion) - 1] = valor
                 nueva_linea = ','.join(linea)
                 lineas_nuevo_archivo.append(nueva_linea)
@@ -68,6 +72,11 @@ def ABM(dir: str) -> str:
         for i in pedidos_titulos:
             if i == 'Nro. Pedido':
                 valor = '\n' + input(f'Ingrese {i}: ')
+                linea.append(valor)
+            elif i == 'Provincia':
+                valor = input(f'Ingrese {i}: ')
+                # Remueve tildes
+                valor = unicodedata.normalize("NFKD", valor).encode("ascii", "ignore").decode("ascii")
                 linea.append(valor)
             else:
                 valor = input(f'Ingrese {i}: ')
@@ -296,6 +305,29 @@ def crea_lista_pedidos(dir: str) -> list:
     archivo_pedidos.close()
     return listado_pedidos
 
+def normaliza_pedidos(dir: str):
+    '''Toma la direccion del archivo para poder remover las tildes en las provincias y lo guarda.'''
+    archivo_pedidos = open(f'{dir}\pedidos.csv', 'r', encoding="UTF-8")
+    lineas_guardar: list = []
+    # Lee linea a linea el archivo pedidos.csv
+    for registro, linea in enumerate(archivo_pedidos):
+        if registro != 0:
+            linea = linea.split(',')
+            # Quita tildes en provincias
+            linea[4] = unicodedata.normalize("NFKD", linea[4]).encode("ascii","ignore").decode("ascii")
+            linea = ','.join(linea)
+            lineas_guardar.append(linea)
+
+        else:
+            lineas_guardar.append(linea)
+
+    lineas_guardar[len(lineas_guardar) - 1] = lineas_guardar[len(lineas_guardar) - 1].rstrip('\n')
+    archivo_pedidos.close()
+
+    # Guarda cambios
+    archivo_pedidos = open(f'{dir}\pedidos.csv', 'w', encoding="UTF-8")
+    archivo_pedidos.writelines(lineas_guardar)
+    archivo_pedidos.close()
 
 #Martín
 def crear_lista_pedidos_entregados(listado_pedidos: list) -> list:
@@ -625,9 +657,11 @@ def main():
     print('Antes de iniciar, por favor, ingrese la ruta en donde se encuentra su archivo de pedidos usando " \ "')
     print('Ejemplo: D:\Documentos\Python Proyectos\prueba')
     direccion_archivo = input('')
-    while not os.path.isdir(direccion_archivo):
-        direccion_archivo = input('Directorio invalido, pruebe nuevamente: ')
+    while not os.path.isdir(direccion_archivo) or not os.path.isfile(f'{direccion_archivo}\pedidos.csv'):
+        direccion_archivo = input('Directorio invalido o archivo no encontrado, pruebe nuevamente: ')
     
+    # Remueve tildes de las provincias en los pedidos actuales
+    normaliza_pedidos(direccion_archivo)
     
     #Martín
 
@@ -676,20 +710,20 @@ def main():
             lista_pedidos_no_entregados: list = crear_lista_pedidos_no_entregados(listado_pedidos)
             volver_menu() 
         elif int(accion) == 4:
-            if not os.path.isfile(f'{dir}\pedidos_realizados.csv'):
+            if not os.path.isfile(f'{direccion_archivo}\pedidos_realizados.csv'):
                 print("Todavia el programa no tiene la información de que pedidos fueron entregados. En el menú, elija la opción \"3\" para actualizar los pedidos entregados.")
             else:
                 listado_pedidos_ordenado: list = ordenar_pedidos(listado_pedidos)
                 pedidos_realizados(listado_pedidos_ordenado)
             volver_menu()
         elif int(accion) == 5:
-            if not os.path.isfile(f'{dir}\pedidos_realizados.csv'):
+            if not os.path.isfile(f'{direccion_archivo}\pedidos_realizados.csv'):
                 print("Todavia el programa no tiene la información de que pedidos fueron entregados. En el menú, elija la opción \"3\" para actualizar los pedidos entregados.")
             else:
                 pedidos_rosario(lista_pedidos_entregados)
             volver_menu()
         elif int(accion) == 6:
-            if not os.path.isfile(f'{dir}\pedidos_realizados.csv'):
+            if not os.path.isfile(f'{direccion_archivo}\pedidos_realizados.csv'):
                 print("Todavia el programa no tiene la información de que pedidos fueron entregados. En el menú, elija la opción \"3\" para actualizar los pedidos entregados.")
             else:
                 cantidad_de_productos_pedidos(listado_pedidos, productos)
