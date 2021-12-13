@@ -354,7 +354,7 @@ def intercambiar(listado_pedidos_ordenado, index):
     
 
 def pedidos_realizados(listado_pedidos_ordenado: list) -> None:
-    #Pre: recibe todos los pedidos realizados (todavia no se en que formato, es probable que en dict)"
+    #Pre: recibe todos los pedidos realizados en formato de lista"
     #Post: Printea los pedidos realizados, en orden de antiguedad y devuelve la cantidad de pedidos realizados en numero. 
     numero_pedidos_entregados: int = 0
     numero_de_pedido: int = 0
@@ -388,9 +388,9 @@ def pedidos_rosario(lista_pedidos_entregados: list) -> None:
             except ZeroDivisionError:
                 valor_pedido += precio_botella * pedidos_rosario[i][7]
         dicc_valores_por_pedido.update({pedidos_rosario[i][0]: valor_pedido}) 
-    print(f"A continuación se mostrará la los pedidos que fueron entregados en la ciudad de Rosario:\n {pedidos_rosario}")
+    print(f"A continuación se mostrarán los pedidos que fueron entregados en la ciudad de Rosario:\n {pedidos_rosario}")
     print(f"Se mostrará el valor en dolares de cada pedido entregado:\nNumero de pedido: valor\n{dicc_valores_por_pedido}")
-    return
+    
 
 
 def cantidad_de_productos_pedidos(listado_pedidos: list, productos: dict) -> dict:
@@ -410,6 +410,8 @@ def cantidad_de_productos_pedidos(listado_pedidos: list, productos: dict) -> dic
     return productos
 
 def cantidad_de_productos_entregados(lista_pedidos_entregados: list, productos_entregados: dict) -> dict:
+    #Pre: recibe los pedidos que fueron entregados
+    #Post: cuenta cada pedido en una lista, mostrando la cantidad de cada producto vendido
     cantidad_botellas_entregadas: dict = {"verde": 0, "rojo": 0, "azul": 0, "negro": 0, "amarillo": 0}
     cantidad_vasos_entregados: dict = {"negro": 0, "azul": 0,}
     for i in range(len(lista_pedidos_entregados)):
