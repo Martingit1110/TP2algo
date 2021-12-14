@@ -42,9 +42,6 @@ def detect_objects(img, net, outputLayers):
 
 
 def get_box_dimensions(outputs, height, width) -> tuple:
-    # Pre: Recibe los uu
-    # Pos:
-
     boxes = []
     confs = []
     class_ids = []
