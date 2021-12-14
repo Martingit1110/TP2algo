@@ -93,6 +93,8 @@ def image_detect(img_path) -> tuple:
 
 
 def deteccion_colores(imagen) -> str:
+    #Pre: la imagen tiene que poder mutar su color al rango hsv.
+    #Post: recibe una imagen, verifica si hay alguno de los 5 colores preestablecidos y retorna una cadena que indica el color existente.
     hsv = cv2.cvtColor(imagen, cv2.COLOR_BGR2HSV)
     colores_rango = {
         "Verde": ([40, 100, 100], [75, 255, 255]),
@@ -111,7 +113,8 @@ def deteccion_colores(imagen) -> str:
 
 
 def contadores_carpeta(objeto: str, color: str, botellas: dict, vasos: dict) -> dict:
-
+    #Pre: el objeto y el color deben ser cadena, recibe los diccionarios contadores de botellas y vasos.
+    #Post: verifica que objeto es y actualiza el diccionario contador correspondiente.
     if objeto == "bottle":
         botellas[color] = botellas[color] + 1
     elif objeto == "cup":
@@ -122,7 +125,8 @@ def contadores_carpeta(objeto: str, color: str, botellas: dict, vasos: dict) -> 
     return botellas, vasos
 
 def verificacion_escaner(objeto: str) -> str:
-
+    #Pre: el objeto debe ser una cadena.
+    #Post: verifica que objeto es y retorna el estado del escaner.
     if objeto == "bottle" or objeto == "cup":
         estado = "ok"
         #print(objeto)
@@ -134,6 +138,8 @@ def verificacion_escaner(objeto: str) -> str:
 
 
 def imagenes_carpeta(carpeta, contador_botellas: dict, contador_vasos: dict):
+    #Pre: tiene que ingresar una direccion que lleve a una carpeta con archivos dentro, recibe los diccionarios contadores de botellas y vasos.
+    #Post: recorre, carga y analiza los archivos dentro de la carpeta recibida uno por uno.
     for filename in os.listdir(carpeta):
         img = cv2.imread(os.path.join(carpeta, filename))
         objeto = image_detect(img)
@@ -146,6 +152,8 @@ def imagenes_carpeta(carpeta, contador_botellas: dict, contador_vasos: dict):
 
 
 def cantidades_txt(contador_botellas: dict, contador_vasos: dict) -> None:
+    #Pre: recibe los diccionarios contadores de botellas y vasos.
+    #Post: actualiza o crea los archivos botellas.txt y vasos.txt con los diccionarios recibidos.
     with open("botellas.txt", "w") as b:
         for key, value in contador_botellas.items():
             b.write("%s %s\n" % (key, value))
