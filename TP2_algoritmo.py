@@ -179,7 +179,7 @@ def ABM(dir: str) -> str:
             for linea in archivo_pedidos:
                 if registro == 0:
                     print('\n\nLa información de los pedidos está ordenada de la siguiente manera:')
-                    print(f'Registro: {linea}')
+                    print(f'Registro, {linea}')
                 else:
                     print(f'{registro}: {linea}')
                 registro += 1
@@ -273,8 +273,9 @@ def ABM(dir: str) -> str:
 
 
 def recorrido(zona: dict, palabra: str, dir: str, imprimir: str) -> list:
-    '''Toma el diccionario para la zona correspondiente, la palabra norte/centro/sur, direccion de archivo e imprimir como string de si/no
-        Devuelve un listado de las ciudades ordenadas por recorrido mas óptimo para usarse en la funcion de procesado de pedidos'''
+    '''Toma el diccionario para la zona correspondiente, la palabra norte/centro/sur, direccion de archivo e
+    imprimir como string de si/no. Devuelve un listado de las ciudades ordenadas por recorrido mas óptimo para
+     usarse en la funcion de procesado de pedidos'''
     # Listado para el procesado de pedidos
     procesado_pedidos_lista: list = []
     # Latitud, Longitud
@@ -372,11 +373,14 @@ def pedidos_entregados(registros: dict, dir: str):
         archivo_pedidos.close()
 
 
-def procesado_pedidos(zona: dict, dir: str, utilitario_usado: int, palabra: str) -> int:
-    '''Toma el diccionario para la zona correspondiente, direccion de archivo, la palabra norte/centro/sur, y el numero de utilitario ya usado para no tenerlo en cuenta en la
-        próxima corrida. Devuelve el numero de utilitario usado.'''
+def procesado_pedidos(zona: dict, dir: str, camion_norte: int, camion_centro: int, camion_sur: int, palabra: str) -> int:
+    '''Toma el diccionario para la zona correspondiente, direccion de archivo, la palabra norte/centro/sur, y el
+    numero de utilitario ya usado para no tenerlo en cuenta en la próxima corrida.
+    Devuelve el numero de utilitario usado.'''
     utilitarios: dict = {1: 600, 2: 1000, 3: 500, 4: 2000}  # num_utilitario: kilos
-    utilitarios.pop(utilitario_usado, None)
+    utilitarios.pop(camion_norte, None)
+    utilitarios.pop(camion_centro, None)
+    utilitarios.pop(camion_sur, None)
     articulos: dict = {1334: [0.450, 0], 568: [0.350, 0]}  # num_art: [kilos, cantidad]
 
     peso_final: int = 0
@@ -385,7 +389,7 @@ def procesado_pedidos(zona: dict, dir: str, utilitario_usado: int, palabra: str)
 
     ciudades_pedidos: list = []
 
-    lineas_pedidos: list = []  # Para marcar pedidos entregados o no
+    lineas_pedidos: list = [] # Para marcar pedidos entregados o no
     lineas_si_no: dict = {'si': [], 'no': []}
 
     archivo_pedidos = open(f'{dir}\pedidos.csv', 'r', encoding="UTF-8")
@@ -441,7 +445,10 @@ def procesado_pedidos(zona: dict, dir: str, utilitario_usado: int, palabra: str)
     elif os.path.isfile(f'{dir}\salida.txt') and utilitario_asignado != 0:
         archivo_salida = open(f'{dir}\salida.txt', 'a', encoding="UTF-8")
         archivo_salida.write(f'\nZona {palabra}\nUtilitario 00{utilitario_asignado}\n{int(peso_final)} kg')
-        archivo_salida.write(f'\nRecorrido: {mostrar_ciudades}')
+        if palabra != 'CABA':
+            archivo_salida.write(f'\nRecorrido: {mostrar_ciudades}')
+        elif palabra == 'CABA':
+            archivo_salida.write(f'\nRecorrido: CABA')
         archivo_salida.close()
 
     return utilitario_asignado
@@ -473,29 +480,36 @@ def crea_lista_pedidos(dir: str) -> list:
 
 
 def normaliza_pedidos(dir: str):
-    '''Toma la direccion del archivo para poder remover las tildes en las provincias y lo guarda.'''
+    '''Toma la direccion del archivo para poder remover las tildes en las provincias y lo guarda.
+    A su vez elimina archivos pedidos_realizados y salida.txt de corridas previas para no tener informacion vieja'''
     archivo_pedidos = open(f'{dir}\pedidos.csv', 'r', encoding="UTF-8")
     lineas_guardar: list = []
     # Lee linea a linea el archivo pedidos.csv
     for registro, linea in enumerate(archivo_pedidos):
-        if registro != 0:
+        if registro != 0 and linea != '\n':
             linea = linea.split(',')
             # Quita tildes en provincias
             linea[4] = unicodedata.normalize("NFKD", linea[4]).encode("ascii", "ignore").decode("ascii")
+            # Convierte colores en minuscula
+            linea[6] = linea[6].lower()
             linea = ','.join(linea)
             lineas_guardar.append(linea)
 
-        else:
+        elif registro == 0:
             lineas_guardar.append(linea)
 
     lineas_guardar[len(lineas_guardar) - 1] = lineas_guardar[len(lineas_guardar) - 1].rstrip('\n')
     archivo_pedidos.close()
 
     # Guarda cambios
-
     archivo_pedidos = open(f'{dir}\pedidos.csv', 'w', encoding="UTF-8")
     archivo_pedidos.writelines(lineas_guardar)
     archivo_pedidos.close()
+    # Borra archivo de salida y pedidos_realizados viejos
+    if os.path.isfile(f'{dir}\pedidos_realizados.csv'):
+        os.remove(f'{dir}\pedidos_realizados.csv')
+    if os.path.isfile(f'{dir}\salida.txt'):
+        os.remove(f'{dir}\salida.txt')
 
 
 # Martín
@@ -715,8 +729,7 @@ def volver_menu():
     input('Presione ENTER para volver al menu: ')
 
 
-def validar_archivo()->str:
-
+def validar_archivo() -> str:
     print('Antes de iniciar, por favor, ingrese la ruta en donde se encuentra su archivo de pedidos usando " \ "')
     print('Ejemplo: D:\Documentos\Python Proyectos\prueba')
 
@@ -727,7 +740,7 @@ def validar_archivo()->str:
     return direccion_archivo
 
 
-def  determina_recorrido( zona_norte:dict, zona_centro:dict, zona_sur:dict , direccion_archivo:str )->None:
+def determina_recorrido(zona_norte: dict, zona_centro: dict, zona_sur: dict, direccion_archivo: str) -> None:
     '''Tomas las zonas, y direccion de archivo para ejecutar los recorridos'''
     iniciar: str = '1'
     while int(iniciar) == 1:
@@ -753,22 +766,24 @@ def  determina_recorrido( zona_norte:dict, zona_centro:dict, zona_sur:dict , dir
         while iniciar.isnumeric() is False or int(iniciar) not in (1, 2):
             accion: str = input('Ingrese una opcion valida: ')
 
-def procesar_pedido( zona_norte:dict, zona_centro:dict, zona_sur:dict, direccion_archivo:str )->list:
+def procesar_pedido(zona_norte: dict, zona_centro: dict, zona_sur: dict, direccion_archivo: str) -> list:
     '''Toma las zonas para usarlas en la funcion procesado_pedidos y devuelve el listado de pedidos con flag de entregado si/no'''
-    camion_norte:int
-    camion_centro:int
-    camion_sur:int
-    listado_pedidos:list=[]
+    camion_norte: int
+    camion_centro: int
+    camion_sur: int
+    listado_pedidos: list = []
+    zona_caba: dict = {'buenos aires': [34.6037, 58.3816]}
 
+    camion_norte = procesado_pedidos(zona_norte, direccion_archivo, 0, 0, 0, 'Norte')
 
-    camion_norte = procesado_pedidos(zona_norte, direccion_archivo, 0, 'Norte')
+    camion_centro = procesado_pedidos(zona_centro, direccion_archivo, camion_norte, 0, 0, 'Centro')
 
-    camion_centro = procesado_pedidos(zona_centro, direccion_archivo, camion_norte, 'Centro')
+    camion_sur = procesado_pedidos(zona_sur, direccion_archivo, camion_norte, camion_centro, 0, 'Sur')
 
-    camion_sur = procesado_pedidos(zona_sur, direccion_archivo, camion_centro, 'Sur')
+    camion_caba = procesado_pedidos(zona_caba, direccion_archivo, camion_norte, camion_centro, camion_sur, 'CABA')
 
-    listado_pedidos= crea_lista_pedidos(direccion_archivo)
-    
+    listado_pedidos = crea_lista_pedidos(direccion_archivo)
+
     print(f'Se han procesado los pedidos. Guardado en:\n{direccion_archivo}\salida.txt')
     return listado_pedidos
 
