@@ -559,8 +559,7 @@ def pedidos_realizados(listado_pedidos_ordenado: list) -> None:
         if listado_pedidos_ordenado[i][0] != numero_de_pedido:
             numero_pedidos_entregados += 1
             numero_de_pedido = listado_pedidos_ordenado[i][0]
-    print(
-        rint(f"La cantidad de pedidos realizados es: {numero_pedidos_entregados}") #printea la cantidad de pedidos realizados.
+    print(f"La cantidad de pedidos realizados es: {numero_pedidos_entregados}") #printea la cantidad de pedidos realizados.
     print(f"A continuación se mostrará la lista por orden de antigüedad con el siguiente formato (separando cada pedido por una \",\"):\n[NdePedido, fecha, cliente, ciudad, provincia, cod. articulo, color, cantidad, descuento, entregado]\n{listado_pedidos_ordenado}")
 
 
@@ -730,8 +729,8 @@ def  determina_recorrido( zona_norte:dict, zona_centro:dict, zona_sur:dict , dir
             recorrido(zona_sur, 'sur', direccion_archivo, 'si')
 
         iniciar = input('\n\n1: Continuar viendo recorridos\n2: Volver al MENU principal\nElija opcion 1/2:')
-            while iniciar.isnumeric() is False or int(iniciar) not in (1, 2):
-                accion: str = input('Ingrese una opcion valida: ')
+        while iniciar.isnumeric() is False or int(iniciar) not in (1, 2):
+            accion: str = input('Ingrese una opcion valida: ')
 
 def procesar_pedido( zona_norte:dict, zona_centro:dict, zona_sur:dict, direccion_archivo:str )->list:
     '''Toma las zonas para usarlas en la funcion procesado_pedidos y devuelve el listado de pedidos con flag de entregado si/no'''
