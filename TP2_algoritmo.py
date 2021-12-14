@@ -158,100 +158,108 @@ def cantidades_txt(contador_botellas: dict, contador_vasos: dict) -> None:
 def ABM(dir: str) -> str:
     '''Toma direccion de archivo pedidos y la devuelve.
     Permite modificar, agregar o eliminir pedidos'''
-    lineas_nuevo_archivo: list = []
-    registro: int = 0
-    pedidos_titulos: list = ['Nro. Pedido', 'Fecha', 'Cliente', 'Ciudad', 'Provincia', 'Cod. Artículo', 'Color',
-                             'Cantidad', 'Descuento']
+    iniciar: str = '1'
+    while int(iniciar) == 1:
+        lineas_nuevo_archivo: list = []
+        registro: int = 0
+        pedidos_titulos: list = ['Nro. Pedido', 'Fecha', 'Cliente', 'Ciudad', 'Provincia', 'Cod. Artículo', 'Color',
+                                 'Cantidad', 'Descuento']
 
-    siguiente_linea = input('Los pedidos actuales son: ')
+        siguiente_linea = input('\nPresione ENTER para ver los pedidos actuales:')
 
-    with open(f"{dir}\pedidos.csv", newline="", encoding="UTF-8") as archivo_pedidos:
-        for linea in archivo_pedidos:
-            if registro == 0:
-                print(f'Registro, {linea}')
-            else:
-                print(f'{registro}: {linea}')
-            registro += 1
+        with open(f"{dir}\pedidos.csv", newline = "", encoding="UTF-8") as archivo_pedidos:
+            for linea in archivo_pedidos:
+                if registro == 0:
+                    print('\n\nLa información de los pedidos está ordenada de la siguiente manera:')
+                    print(f'Registro: {linea}')
+                else:
+                    print(f'{registro}: {linea}')
+                registro += 1
 
-    print('\nMENU\n1 - Modificar pedido existente\n2 - Agregar nuevo pedido\n3 - Eliminar pedido')
-    accion = input('Elija opcion 1/2/3: ')
-    while accion.isnumeric() is False or int(accion) not in (1, 2, 3):
-        accion: str = input('Ingrese una opcion valida: ')
+        print('\nABM\n1 - Modificar pedido existente\n2 - Agregar nuevo pedido\n3 - Eliminar pedido')
+        accion = input('Elija opcion 1/2/3: ')
+        while accion.isnumeric() is False or int(accion) not in (1, 2, 3):
+            accion: str = input('Ingrese una opcion valida: ')
 
-    if int(accion) == 1:
+        if int(accion) == 1:
 
-        conteo_registro: int = 1
-        num_pedido = input('Que pedido quiere modificar?\nEscriba el numero de Registro: ')
+            conteo_registro: int = 1
+            num_pedido = input('Que pedido quiere modificar?\nEscriba el numero de Registro: ')
 
-        archivo_pedidos = open(f'{dir}\pedidos.csv', 'r', encoding="UTF-8")
-        for registro, linea in enumerate(archivo_pedidos):
+            archivo_pedidos = open(f'{dir}\pedidos.csv', 'r', encoding="UTF-8")
+            for registro, linea in enumerate(archivo_pedidos):
 
-            if registro == int(num_pedido):
-                linea = linea.split(',')
-                print('Datos del pedido: ')
-                # Muestra datos enumerados
-                for i in range(0, len(pedidos_titulos)):
-                    print(f'{conteo_registro}: {pedidos_titulos[i]} - {linea[i]}')
-                    conteo_registro += 1
+                if registro == int(num_pedido):
+                    linea = linea.split(',')
+                    print('\nDatos del pedido: ')
+                    # Muestra datos enumerados
+                    for i in range(0, len(pedidos_titulos)):
+                        print(f'{conteo_registro}: {pedidos_titulos[i]} - {linea[i]}')
+                        conteo_registro += 1
 
-                accion = input('Cual dato desea modificar? Escriba numero: ')
-                while accion.isnumeric() is False or int(accion) not in (1, 2, 3, 4, 5, 6, 7, 8, 9):
-                    accion: str = input('Ingrese una opcion valida: ')
-                # Modifica
-                valor = input('Ingrese nuevo valor: ')
-                if int(accion) == 5:
-                    # Remueve tildes para provincias
+                    accion = input('Cual dato desea modificar? Escriba numero: ')
+                    while accion.isnumeric() is False or int(accion) not in (1, 2, 3, 4, 5, 6, 7, 8, 9):
+                        accion: str = input('Ingrese una opcion valida: ')
+                    # Modifica
+                    valor = input('Ingrese nuevo valor: ')
+                    if int(accion) == 5:
+                        # Remueve tildes para provincias
+                        valor = unicodedata.normalize("NFKD", valor).encode("ascii", "ignore").decode("ascii")
+                    elif int(accion) == 9:
+                        valor = valor + '\n'
+                    linea[int(accion) - 1] = valor
+                    nueva_linea = ','.join(linea)
+                    lineas_nuevo_archivo.append(nueva_linea)
+
+                else:
+                    lineas_nuevo_archivo.append(linea)
+
+            archivo_pedidos.close()
+
+            archivo_pedidos_nuevo = open(f'{dir}\pedidos.csv', 'w', encoding="UTF-8")
+            archivo_pedidos_nuevo.writelines(lineas_nuevo_archivo)
+            archivo_pedidos_nuevo.close()
+
+
+        if int(accion) == 2:
+
+            linea: list = []
+            for i in pedidos_titulos:
+                if i == 'Nro. Pedido':
+                    valor = '\n' + input(f'Ingrese {i}: ')
+                    linea.append(valor)
+                elif i == 'Provincia':
+                    valor = input(f'Ingrese {i}: ')
+                    # Remueve tildes
                     valor = unicodedata.normalize("NFKD", valor).encode("ascii", "ignore").decode("ascii")
-                linea[int(accion) - 1] = valor
-                nueva_linea = ','.join(linea)
-                lineas_nuevo_archivo.append(nueva_linea)
+                    linea.append(valor)
+                else:
+                    valor = input(f'Ingrese {i}: ')
+                    linea.append(valor)
 
-            else:
-                lineas_nuevo_archivo.append(linea)
+            nuevo_registro = ','.join(linea)
 
-        archivo_pedidos.close()
+            archivo_pedidos_nuevo = open(f'{dir}\pedidos.csv', 'a', encoding="UTF-8")
+            archivo_pedidos_nuevo.write(nuevo_registro)
+            archivo_pedidos_nuevo.close()
 
-        archivo_pedidos_nuevo = open(f'{dir}\pedidos.csv', 'w', encoding="UTF-8")
-        archivo_pedidos_nuevo.writelines(lineas_nuevo_archivo)
-        archivo_pedidos_nuevo.close()
+        if int(accion) == 3:
 
-    if int(accion) == 2:
+            num_pedido = input('Que pedido quiere borrar?\nEscriba el numero de Registro: ')
 
-        linea: list = []
-        for i in pedidos_titulos:
-            if i == 'Nro. Pedido':
-                valor = '\n' + input(f'Ingrese {i}: ')
-                linea.append(valor)
-            elif i == 'Provincia':
-                valor = input(f'Ingrese {i}: ')
-                # Remueve tildes
-                valor = unicodedata.normalize("NFKD", valor).encode("ascii", "ignore").decode("ascii")
-                linea.append(valor)
-            else:
-                valor = input(f'Ingrese {i}: ')
-                linea.append(valor)
+            archivo_pedidos = open(f'{dir}\pedidos.csv', 'r', encoding="UTF-8")
+            for registro, linea in enumerate(archivo_pedidos):
+                #Saltea el pedido a borrar
+                if registro != int(num_pedido):
+                    lineas_nuevo_archivo.append(linea)
+            archivo_pedidos.close()
 
-        nuevo_registro = ','.join(linea)
-
-        archivo_pedidos_nuevo = open(f'{dir}\pedidos.csv', 'a', encoding="UTF-8")
-        archivo_pedidos_nuevo.write(nuevo_registro)
-        archivo_pedidos_nuevo.close()
-
-    if int(accion) == 3:
-
-        num_pedido = input('Que pedido quiere borrar?\nEscriba el numero de Registro: ')
-
-        archivo_pedidos = open(f'{dir}\pedidos.csv', 'r', encoding="UTF-8")
-        for registro, linea in enumerate(archivo_pedidos):
-            # Saltea el pedido a borrar
-            if registro != int(num_pedido):
-                lineas_nuevo_archivo.append(linea)
-
-        archivo_pedidos.close()
-
-        archivo_pedidos_nuevo = open(f'{dir}\pedidos.csv', 'w', encoding="UTF-8")
-        archivo_pedidos_nuevo.writelines(lineas_nuevo_archivo)
-        archivo_pedidos_nuevo.close()
+            archivo_pedidos_nuevo = open(f'{dir}\pedidos.csv', 'w', encoding="UTF-8")
+            archivo_pedidos_nuevo.writelines(lineas_nuevo_archivo)
+            archivo_pedidos_nuevo.close()
+        iniciar = input('\n\n1: Continuar en ABM\n2: Volver al MENU principal\nElija opcion 1/2:')
+        while iniciar.isnumeric() is False or int(iniciar) not in (1, 2):
+            accion: str = input('Ingrese una opcion valida: ')
 
     return dir
 
@@ -699,27 +707,33 @@ def validar_archivo()->str:
 
 
 def  determina_recorrido( zona_norte:dict, zona_centro:dict, zona_sur:dict , direccion_archivo:str )->None:
+    '''Tomas las zonas, y direccion de archivo para ejecutar los recorridos'''
+    iniciar: str = '1'
+    while int(iniciar) == 1:
+        print('Zonas:\n1: Norte\n2: Centro\n3: Sur')
 
-    print('Zonas:\n1: Norte\n2: Centro\n3: Sur')
+        opcion = input('Para que zona desea ver el recorrido? 1/2/3: ')
 
-    opcion = input('Para que zona desea ver el recorrido? 1/2/3: ')
+        while opcion.isnumeric() is False or int(opcion) not in (1, 2, 3):
+            opcion: str = input('Ingrese una opcion valida: ')
 
-    while opcion.isnumeric() is False or int(opcion) not in (1, 2, 3):
-        opcion: str = input('Ingrese una opcion valida: ')
+        if int(opcion) == 1:
 
-    if int(opcion) == 1:
+            recorrido(zona_norte, 'norte', direccion_archivo, 'si')
 
-        recorrido(zona_norte, 'norte', direccion_archivo, 'si')
+        elif int(opcion) == 2:
 
-    elif int(opcion) == 2:
+            recorrido(zona_centro, 'centro', direccion_archivo, 'si')
 
-        recorrido(zona_centro, 'centro', direccion_archivo, 'si')
+        else:
+            recorrido(zona_sur, 'sur', direccion_archivo, 'si')
 
-    else:
-        recorrido(zona_sur, 'sur', direccion_archivo, 'si')
+        iniciar = input('\n\n1: Continuar viendo recorridos\n2: Volver al MENU principal\nElija opcion 1/2:')
+            while iniciar.isnumeric() is False or int(iniciar) not in (1, 2):
+                accion: str = input('Ingrese una opcion valida: ')
 
 def procesar_pedido( zona_norte:dict, zona_centro:dict, zona_sur:dict, direccion_archivo:str )->list:
-
+    '''Toma las zonas para usarlas en la funcion procesado_pedidos y devuelve el listado de pedidos con flag de entregado si/no'''
     camion_norte:int
     camion_centro:int
     camion_sur:int
@@ -733,7 +747,8 @@ def procesar_pedido( zona_norte:dict, zona_centro:dict, zona_sur:dict, direccion
     camion_sur = procesado_pedidos(zona_sur, direccion_archivo, camion_centro, 'Sur')
 
     listado_pedidos= crea_lista_pedidos(direccion_archivo)
-
+    
+    print(f'Se han procesado los pedidos. Guardado en:\n{direccion_archivo}\salida.txt')
     return listado_pedidos
 
 def pedidos_completados(listado_pedidos:list , direccion_archivo:str)->None:
@@ -798,11 +813,10 @@ def imprimir_menu(zona_norte:dict, zona_centro:dict, zona_sur:dict, direccion_ar
         if int(accion) == 1:
 
             direccion_archivo = ABM(direccion_archivo)
-            volver_menu()
 
         elif int(accion) == 2:
+            
             determina_recorrido(zona_norte, zona_centro, zona_sur , direccion_archivo )
-            volver_menu()
 
         elif int(accion) == 3:
 
@@ -860,7 +874,7 @@ def main():
     #imagenes_carpeta(folder, contadores_botellas, contadores_vasos)
     direccion_archivo: str = validar_archivo()
     normaliza_pedidos(direccion_archivo)
-    imprimir_menu( zona_norte, zona_centro, zona_sur, direccion_archivo, productos , productos_entregados)
+    imprimir_menu(zona_norte, zona_centro, zona_sur, direccion_archivo, productos, productos_entregados)
     cantidades_txt(contadores_botellas, contadores_vasos)
 
 
