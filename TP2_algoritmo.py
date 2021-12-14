@@ -758,7 +758,7 @@ def pedidos_completados(listado_pedidos:list , direccion_archivo:str)->None:
     if not os.path.isfile(f'{direccion_archivo}\pedidos_realizados.csv'):
         print(
             "Todavia el programa no tiene la información de que pedidos fueron entregados. En el menú, elija la opción \"3\" para actualizar los pedidos entregados.")
-    else:
+    elif os.path.isfile(f'{direccion_archivo}\pedidos_realizados.csv'):
         listado_pedidos_ordenado= ordenar_pedidos(listado_pedidos)
         pedidos_realizados(listado_pedidos_ordenado)
 
@@ -768,7 +768,7 @@ def valorizacion_pedidos_rosario(lista_pedidos_entregados:list, direccion_archiv
     if not os.path.isfile(f'{direccion_archivo}\pedidos_realizados.csv'):
         print(
             "Todavia el programa no tiene la información de que pedidos fueron entregados. En el menú, elija la opción \"3\" para actualizar los pedidos entregados.")
-    else:
+    elif os.path.isfile(f'{direccion_archivo}\pedidos_realizados.csv'):
         pedidos_rosario(lista_pedidos_entregados)
 
 def articulos_mas_pedidos(direccion_archivo:str,lista_pedidos_entregados:list ,productos_entregados:dict , productos:dict ,listado_pedidos:list  )->None:
@@ -776,7 +776,7 @@ def articulos_mas_pedidos(direccion_archivo:str,lista_pedidos_entregados:list ,p
     if not os.path.isfile(f'{direccion_archivo}\pedidos_realizados.csv'):
         print(
             "Todavia el programa no tiene la información de que pedidos fueron entregados. En el menú, elija la opción \"3\" para actualizar los pedidos entregados.")
-    else:
+    elif os.path.isfile(f'{direccion_archivo}\pedidos_realizados.csv'):
         cantidad_de_productos_pedidos(listado_pedidos, productos)
         cantidad_de_productos_entregados(lista_pedidos_entregados, productos_entregados)
         articulo_mas_pedido(productos, productos_entregados)
