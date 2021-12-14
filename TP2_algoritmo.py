@@ -500,6 +500,8 @@ def normaliza_pedidos(dir: str):
 
 # Martín
 def crear_lista_pedidos_entregados(listado_pedidos: list) -> list:
+    #Pre: Recibe la lista con TODOS los pedidos.
+    #Post: Entrega una nueva lista solo con los pedidos que fueron entregados.
     lista_entregados: list = []  # lista vacia
     for sublista in listado_pedidos:  # recorro sublista
         if sublista[9] == "si":
@@ -508,6 +510,8 @@ def crear_lista_pedidos_entregados(listado_pedidos: list) -> list:
 
 
 def crear_lista_pedidos_no_entregados(listado_pedidos: list) -> list:
+    #Pre: Recibe la lista con TODOS los pedidos.
+    #Post: Entrega una nueva lista solo con los pedidos que NO fueron entregados.
     lista_no_entregados: list = []  # lista vacia
     for sublista in listado_pedidos:  # recorro sublista
         if sublista[9] == "no":
@@ -515,16 +519,19 @@ def crear_lista_pedidos_no_entregados(listado_pedidos: list) -> list:
     return lista_no_entregados
 
 
-def ordenar_pedidos(listado_pedidos: list) -> list:
+def ordenar_pedidos(lista_entegados: list) -> list:
+    #Pre: Recibe una lista un  con los pedidos entregados.
+    #Post: Crea y devulve una lista con los pedidos ordenados por fecha.
     listado_pedidos_ordenado: list = []
-    for item in listado_pedidos:
-        if item[9] == "si":
-            listado_pedidos_ordenado.append(item)
+    for item in lista_entregados:
+        listado_pedidos_ordenado.append(item)
     listado_pedidos_ordenado = ordenamiento_burbuja(listado_pedidos_ordenado)
     return listado_pedidos_ordenado
 
 
-def ordenamiento_burbuja(listado_pedidos_ordenado):
+def ordenamiento_burbuja(listado_pedidos_ordenado) -> list:
+    #Pre: Recibe una lista con los pedidos entregados.
+    #Post: Devuelve una lista con los pedidos ordenados por fecha.
     orden: bool = False
     while (orden == False):
         orden = True
@@ -552,15 +559,17 @@ def ordenamiento_burbuja(listado_pedidos_ordenado):
     return listado_pedidos_ordenado
 
 
-def intercambiar(listado_pedidos_ordenado, index):
+def intercambiar(listado_pedidos_ordenado, index) -> None:
+    #Pre: Recibe una lista y una posición dentro de la lista.
+    #Post: Devuelve una nueva posición para el numero dentro de la lista. Es parte del proceso de ordenamiento de la lista.
     aux: list = listado_pedidos_ordenado[index]
     listado_pedidos_ordenado[index] = listado_pedidos_ordenado[index + 1]
     listado_pedidos_ordenado[index + 1] = aux
 
 
 def pedidos_realizados(listado_pedidos_ordenado: list) -> None:
-    # Pre: recibe todos los pedidos realizados en formato de lista"
-    # Post: Printea los pedidos realizados, en orden de antiguedad y devuelve la cantidad de pedidos realizados en numero.
+    # Pre: Recibe una lista con los pedidos realizados ordenados por fecha.
+    # Post: Muestra los pedidos realizados, en orden de antiguedad y la cantidad de pedidos realizados en numero.
     numero_pedidos_entregados: int = 0
     numero_de_pedido: int = 0
     for i in range(len(listado_pedidos_ordenado)):
@@ -572,8 +581,8 @@ def pedidos_realizados(listado_pedidos_ordenado: list) -> None:
 
 
 def pedidos_rosario(lista_pedidos_entregados: list) -> None:
-    # Pre: recibir los pedidos completados
-    # Post: filtrea los que tienen como ciudad rosario, los muestra y los valoriza
+    # Pre: recibe los pedidos entregados.
+    # Post: filtra los que tienen como ciudad rosario, los muestra y los valoriza.
     pedidos_rosario: list = []  # lista vacia
     precio_botella: int = 15
     precio_vaso: int = 8
@@ -609,6 +618,8 @@ def pedidos_rosario(lista_pedidos_entregados: list) -> None:
         print(f"Se mostrará el valor en dolares de cada pedido entregado con el siguiente formato: Numero de pedido: valor\n{dicc_valores_por_pedido}")
 
 def valores_por_pedido(pedidos_rosario: list) -> list:
+    #Pre: Recibe una lista con todos los pedidos que fueron entregados en la ciudad de Rosario.
+    #Post: Devuelve la misma lista con el agregado en cada pedido del valor en dolares.
     valor_pedido_lista: list = []
     valor_pedido: float = 0
     numero_de_pedido: int = 1
@@ -625,8 +636,8 @@ def valores_por_pedido(pedidos_rosario: list) -> list:
 
 
 def cantidad_de_productos_pedidos(listado_pedidos: list, productos: dict) -> dict:
-    # Pre: recibe los pedidos
-    # Post: cuenta cada pedido en una lista, mostrando la cantidad de cada producto vendido
+    # Pre: Recibe la lista con los todos los pedidos y un diccionario vacio.
+    # Post: Devuelve el mismo diccionario con la información de cuantos productos fueron pedidos de cada color, en un formato de: diccionario dentro de diccionario.
     cantidad_botellas: dict = {"verde": 0, "rojo": 0, "azul": 0, "negro": 0, "amarillo": 0}
     cantidad_vasos: dict = {"negro": 0, "azul": 0, }
     for i in range(len(listado_pedidos)):
@@ -642,8 +653,8 @@ def cantidad_de_productos_pedidos(listado_pedidos: list, productos: dict) -> dic
 
 
 def cantidad_de_productos_entregados(lista_pedidos_entregados: list, productos_entregados: dict) -> dict:
-    # Pre: recibe los pedidos que fueron entregados
-    # Post: cuenta cada pedido en una lista, mostrando la cantidad de cada producto vendido
+    # Pre:  Recibe la lista con los todos los pedidos entregados y un diccionario vacio.
+    # Post: Devuelve el mismo diccionario con la información de cuantos productos fueron entregados de cada color, en un formato de: diccionario dentro de diccionario.
     cantidad_botellas_entregadas: dict = {"verde": 0, "rojo": 0, "azul": 0, "negro": 0, "amarillo": 0}
     cantidad_vasos_entregados: dict = {"negro": 0, "azul": 0, }
     for i in range(len(lista_pedidos_entregados)):
@@ -660,7 +671,7 @@ def cantidad_de_productos_entregados(lista_pedidos_entregados: list, productos_e
 
 def articulo_mas_pedido(productos: dict, productos_entregados: dict) -> None:
     # Pre: Recibe el diccionario de productos y productos entregados.
-    # Post: muestra cual es el articulo mas pedido y cuantos fueron entregados.
+    # Post: Muestra cual es el articulo mas pedido y cuantos fueron entregados.
     producto_mas_pedido: str = ""  # inicializo variables
     color: str = ""
     cantidad_producto_mas_pedido: int = 0
@@ -699,6 +710,8 @@ def articulo_mas_pedido(productos: dict, productos_entregados: dict) -> None:
 
 
 def volver_menu():
+    #Pre: No hay condiciones previas.
+    #Post: Muestra un mensaje avisando que se volverá al menú. 
     input('Presione ENTER para volver al menu: ')
 
 
@@ -791,7 +804,8 @@ def articulos_mas_pedidos(direccion_archivo:str,lista_pedidos_entregados:list ,p
 
 
 def imprimir_menu(zona_norte:dict, zona_centro:dict, zona_sur:dict, direccion_archivo:str, productos:dict , productos_entregados:dict ):
-
+    #Pre: Recibe varios diccionarios y un string, entre esos son: Ubicaciones de distintas provincias dividias en zona norte, central y sur; una dirección de archivos (string), y dos diccionarios vacios que se usarán en las funciones.
+    #Post: Muestra el menú y deja al usuario decidir que función quiere ejecutar mediante el uso de opciones numéricas. Dependiendo la opción decidida, se mostrará la información correspondiente hasta que el usuario decida salir del menú.
     cerrar_menu:bool = False
     accion:str
     opcion:str
