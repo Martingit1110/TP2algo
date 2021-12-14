@@ -560,8 +560,8 @@ def pedidos_realizados(listado_pedidos_ordenado: list) -> None:
             numero_pedidos_entregados += 1
             numero_de_pedido = listado_pedidos_ordenado[i][0]
     print(
-        f"La cantidad de pedidos realizados es: {numero_pedidos_entregados}")  # printea la cantidad de pedidos realizados.
-    print(f"A continuación se mostrará la lista por orden de antigüedad:\n{listado_pedidos_ordenado}")
+        rint(f"La cantidad de pedidos realizados es: {numero_pedidos_entregados}") #printea la cantidad de pedidos realizados.
+    print(f"A continuación se mostrará la lista por orden de antigüedad con el siguiente formato (separando cada pedido por una \",\"):\n[NdePedido, fecha, cliente, ciudad, provincia, cod. articulo, color, cantidad, descuento, entregado]\n{listado_pedidos_ordenado}")
 
 
 def pedidos_rosario(lista_pedidos_entregados: list) -> None:
@@ -595,10 +595,11 @@ def pedidos_rosario(lista_pedidos_entregados: list) -> None:
     valor_pedido_lista: list = valores_por_pedido(pedidos_rosario)
     for i in range(len(valor_pedido_lista)):
         dicc_valores_por_pedido.update({i + 1: valor_pedido_lista[i]})
-    print(f"A continuación se mostrarán los pedidos que fueron entregados en la ciudad de Rosario:\n {pedidos_rosario}")
-    print(
-        f"Se mostrará el valor en dolares de cada pedido entregado:\nNumero de pedido: valor\n{dicc_valores_por_pedido}")
-
+    if pedidos_rosario == []:
+        print("No hay pedidos que fueron entregados en la ciudad de Rosario.")
+    elif pedidos_rosario != []:
+        print(f"A continuación se mostrarán los pedidos que fueron entregados en la ciudad de Rosario:\n {pedidos_rosario}")
+        print(f"Se mostrará el valor en dolares de cada pedido entregado con el siguiente formato: Numero de pedido: valor\n{dicc_valores_por_pedido}")
 
 def valores_por_pedido(pedidos_rosario: list) -> list:
     valor_pedido_lista: list = []
