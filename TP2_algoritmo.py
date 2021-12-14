@@ -903,9 +903,9 @@ def main():
                 'santa cruz': [48.7737, 69.1917], 'tierra del fuego': [54.3084, 67.7452]}
 
 
-    #folder: str = os.getcwd() + "\Lote0001"
+    folder: str = os.getcwd() + "\Lote0001"
 
-    #imagenes_carpeta(folder, contadores_botellas, contadores_vasos)
+    imagenes_carpeta(folder, contadores_botellas, contadores_vasos)
     direccion_archivo: str = validar_archivo()
     normaliza_pedidos(direccion_archivo)
     imprimir_menu(zona_norte, zona_centro, zona_sur, direccion_archivo, productos, productos_entregados)
