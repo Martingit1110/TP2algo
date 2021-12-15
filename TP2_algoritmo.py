@@ -530,7 +530,7 @@ def crear_lista_pedidos_no_entregados(listado_pedidos: list) -> list:
     return lista_no_entregados
 
 
-def ordenar_pedidos(lista_entegados: list) -> list:
+def ordenar_pedidos(lista_entregados: list) -> list:
     #Pre: Recibe una lista un  con los pedidos entregados.
     #Post: Crea y devulve una lista con los pedidos ordenados por fecha.
     listado_pedidos_ordenado: list = []
