@@ -587,8 +587,10 @@ def pedidos_realizados(listado_pedidos_ordenado: list) -> None:
         if listado_pedidos_ordenado[i][0] != numero_de_pedido:
             numero_pedidos_entregados += 1
             numero_de_pedido = listado_pedidos_ordenado[i][0]
-    print(f"La cantidad de pedidos realizados es: {numero_pedidos_entregados}") #printea la cantidad de pedidos realizados.
-    print(f"A continuación se mostrará la lista por orden de antigüedad con el siguiente formato (separando cada pedido por una \",\"):\n[NdePedido, fecha, cliente, ciudad, provincia, cod. articulo, color, cantidad, descuento, entregado]\n{listado_pedidos_ordenado}")
+   print(f"La cantidad de pedidos realizados es: {numero_pedidos_entregados}\n") #printea la cantidad de pedidos realizados.
+    print("A continuación se mostrará la lista por orden de antigüedad:\n")
+    for i in range(len(listado_pedidos_ordenado)):
+        print(f"Fecha: {listado_pedidos_ordenado[i][1]}, numero de pedido: {listado_pedidos_ordenado[i][0]}, cliente: {listado_pedidos_ordenado[i][2]}, ciudad: {listado_pedidos_ordenado[i][3]}, provincia: {listado_pedidos_ordenado[i][4]}, código de articulo: {listado_pedidos_ordenado[i][5]}, color: {listado_pedidos_ordenado[i][6]}, cantidad: {listado_pedidos_ordenado[i][7]}, descuento: {listado_pedidos_ordenado[i][8]}\n")
 
 
 def pedidos_rosario(lista_pedidos_entregados: list) -> None:
