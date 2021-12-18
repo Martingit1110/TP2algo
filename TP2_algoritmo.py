@@ -3,6 +3,10 @@ import numpy as np
 import os
 from geopy import distance
 import unicodedata
+from geopy.geocoders import Nominatim
+import certifi
+import ssl
+import geopy.geocoders
 
 
 def load_yolo():
@@ -172,7 +176,7 @@ def ABM(dir: str) -> str:
 
         siguiente_linea = input('\nPresione ENTER para ver los pedidos actuales:')
 
-        with open(f"{dir}\pedidos.csv", newline = "", encoding="UTF-8") as archivo_pedidos:
+        with open(f"{dir}\pedidos.csv", newline="", encoding="UTF-8") as archivo_pedidos:
             for linea in archivo_pedidos:
                 if registro == 0:
                     print('\n\nLa información de los pedidos está ordenada de la siguiente manera:')
@@ -210,6 +214,10 @@ def ABM(dir: str) -> str:
                     if int(accion) == 5:
                         # Remueve tildes para provincias
                         valor = unicodedata.normalize("NFKD", valor).encode("ascii", "ignore").decode("ascii")
+                    elif int(accion) == 4:
+                        valor = valor.capitalize()
+                    elif int(accion) == 7:
+                        valor = valor.lower()
                     elif int(accion) == 9:
                         valor = valor + '\n'
                     linea[int(accion) - 1] = valor
@@ -225,7 +233,6 @@ def ABM(dir: str) -> str:
             archivo_pedidos_nuevo.writelines(lineas_nuevo_archivo)
             archivo_pedidos_nuevo.close()
 
-
         if int(accion) == 2:
 
             linea: list = []
@@ -237,6 +244,14 @@ def ABM(dir: str) -> str:
                     valor = input(f'Ingrese {i}: ')
                     # Remueve tildes
                     valor = unicodedata.normalize("NFKD", valor).encode("ascii", "ignore").decode("ascii")
+                    linea.append(valor)
+                elif i == 'Ciudad':
+                    valor = input(f'Ingrese {i}: ')
+                    valor = valor.capitalize()
+                    linea.append(valor)
+                elif i == 'Color':
+                    valor = input(f'Ingrese {i}: ')
+                    valor = valor.lower()
                     linea.append(valor)
                 else:
                     valor = input(f'Ingrese {i}: ')
@@ -254,7 +269,7 @@ def ABM(dir: str) -> str:
 
             archivo_pedidos = open(f'{dir}\pedidos.csv', 'r', encoding="UTF-8")
             for registro, linea in enumerate(archivo_pedidos):
-                #Saltea el pedido a borrar
+                # Saltea el pedido a borrar
                 if registro != int(num_pedido):
                     lineas_nuevo_archivo.append(linea)
             archivo_pedidos.close()
@@ -268,70 +283,80 @@ def ABM(dir: str) -> str:
 
     return dir
 
+def distancia_ciudades(ciudad1: str, ciudad2: str) -> float:
+    # Toma dos ciudades como parámetros y devuelve la distancia en kilometros como float.
+    ctx = ssl.create_default_context(cafile=certifi.where())
+    geopy.geocoders.options.default_ssl_context = ctx
+    geolocator = Nominatim(user_agent='ivan')
 
-def recorrido(zona: dict, palabra: str, dir: str, imprimir: str) -> list:
+    ciudad1 = ciudad1 + ', Argentina'
+    ciudad2 = ciudad2 + ', Argentina'
+
+    nombre1 = geolocator.geocode(ciudad1)
+    nombre2 = geolocator.geocode(ciudad2)
+
+    ubicacion1 = ((nombre1.latitude, nombre1.longitude))
+    ubicacion2 = ((nombre2.latitude, nombre2.longitude))
+
+    distancia = float(distance.distance(ubicacion1, ubicacion2).km)
+
+    return distancia
+
+def recorrido(zona: list, palabra: str, dir: str, imprimir: str) -> list:
     '''Toma el diccionario para la zona correspondiente, la palabra norte/centro/sur, direccion de archivo e
-    imprimir como string de si/no. Devuelve un listado de las ciudades ordenadas por recorrido mas óptimo para
-     usarse en la funcion de procesado de pedidos'''
+    imprimir como string de si/no ya que esta funcion tambien es usada por procesado_pedidos()
+    para corroborar distancia óptima y no quiero que haga prints.
+    Devuelve un listado de las ciudades ordenadas por recorrido mas óptimo para usarse en la funcion de
+    procesado de pedidos'''
+
     # Listado para el procesado de pedidos
     procesado_pedidos_lista: list = []
-    # Latitud, Longitud
-    planta_campana = [34.1633, 58.9593]
 
-    globals()[f'zona_{palabra}_pedidos']: dict = {}
-    globals()[f'zona_{palabra}_pedidos_capitales']: dict = {}
+    zona_pedidos_ciudades: dict = {}
 
     archivo_pedidos = open(f'{dir}\pedidos.csv', 'r', encoding="UTF-8")
 
-    # Lee linea a linea el archivo pedidos.csv para obtener los pedidos de zona {palabra}
+    # Lee linea a linea el archivo pedidos.csv para obtener los pedidos de la zona, guarda ciudad y provincia
     for registro, linea in enumerate(archivo_pedidos):
         linea = linea.split(',')
-        if linea[4].lower() in zona.keys() and linea[3].lower() != 'caba':
-            globals()[f'zona_{palabra}_pedidos_capitales'][linea[3].lower()] = \
-                [zona.get(linea[4].lower()), linea[4].lower()]
-            globals()[f'zona_{palabra}_pedidos'][linea[4].lower()] = \
-                [zona.get(linea[4].lower()), linea[3].lower()]
+        if linea[4].lower() in zona and linea[3].lower() != 'caba':
+            zona_pedidos_ciudades[linea[3].lower()] = linea[4].lower()
 
-    if not bool(globals()[f'zona_{palabra}_pedidos'].keys()):
+    if not bool(zona_pedidos_ciudades.keys()):
         if imprimir == 'si':
             print(f'No hay pedidos para la zona {palabra}')
 
 
     else:
-        # Calcula menor distancia entre Planta de Campana y ciudades de zona {palabra}.
-        distancia_menor: int = 1000000000000
-        for i in globals()[f'zona_{palabra}_pedidos'].keys():
-            distancia: int = distance.distance(planta_campana,
-                                               globals()[f'zona_{palabra}_pedidos'].get(i)[0]).kilometers
+        # Calcula menor distancia entre Planta de Campana y ciudades de zona.
+        distancia_menor: float = 1000000000000.0
+        for i in zona_pedidos_ciudades.keys():
+            distancia: float = distancia_ciudades('Campana', i)
             if distancia < distancia_menor:
                 distancia_menor = distancia
-                provincia_cercana: str = i
-                ciudad_cercana: str = globals()[f'zona_{palabra}_pedidos'][provincia_cercana][1]
+                ciudad_cercana: str = i
         if imprimir == 'si':
-            print(f'El recorrido mas óptimo va desde la planta en Campana hacia {provincia_cercana}: '
-                  f'{ciudad_cercana}')
+            print(f'El recorrido mas óptimo va desde la planta en Campana hacia {zona_pedidos_ciudades[ciudad_cercana]}'
+                  f': {ciudad_cercana}')
         procesado_pedidos_lista.append(ciudad_cercana)
-        # Calcula cual es la provincia/ciudad mas cercana a la anterior
+
+        # Calcula cual es la ciudad mas cercana a la anterior
 
         ciudades_descarte: list = []
-        for x in range(0, len(globals()[f'zona_{palabra}_pedidos_capitales']) - 1):
-            distancia_menor: int = 1000000000000
+        for x in range(0, len(zona_pedidos_ciudades.keys()) - 1):
+            distancia_menor: float = 1000000000000.0
 
-            for i in globals()[f'zona_{palabra}_pedidos_capitales'].keys():
-
+            for i in zona_pedidos_ciudades.keys():
                 if ciudad_cercana != i and i not in ciudades_descarte:
-                    distancia: int = distance.distance(
-                        globals()[f'zona_{palabra}_pedidos_capitales'].get(ciudad_cercana)[0],
-                        globals()[f'zona_{palabra}_pedidos_capitales'].get(i)[0]).kilometers
+                    distancia: float = distancia_ciudades(ciudad_cercana, i)
                     if distancia < distancia_menor:
                         distancia_menor = distancia
                         ciudad_cercana2: str = i
 
             ciudades_descarte.append(ciudad_cercana)
             if imprimir == 'si':
-                print(
-                    f'Desde {globals()[f"zona_{palabra}_pedidos_capitales"][ciudad_cercana][1]}: {ciudad_cercana} hacia '
-                    f'{globals()[f"zona_{palabra}_pedidos_capitales"][ciudad_cercana2][1]}: {ciudad_cercana2}')
+                print(f'Desde {zona_pedidos_ciudades[ciudad_cercana]}: {ciudad_cercana} hacia '
+                    f'{zona_pedidos_ciudades[ciudad_cercana2]}: {ciudad_cercana2}')
             procesado_pedidos_lista.append(ciudad_cercana2)
             ciudad_cercana = ciudad_cercana2
 
@@ -370,10 +395,11 @@ def pedidos_entregados(registros: dict, dir: str):
         archivo_pedidos.close()
 
 
-def procesado_pedidos(zona: dict, dir: str, camion_norte: int, camion_centro: int, camion_sur: int, palabra: str) -> int:
+def procesado_pedidos(zona: list, dir: str, camion_norte: int, camion_centro: int, camion_sur: int,
+                      palabra: str) -> int:
     '''Toma el diccionario para la zona correspondiente, direccion de archivo, la palabra norte/centro/sur, y el
     numero de utilitario ya usado para no tenerlo en cuenta en la próxima corrida.
-    Devuelve el numero de utilitario usado.'''
+    Devuelve el numero de utilitario usado y crea el archivo salida.txt con la informacion de cada recorrido'''
     utilitarios: dict = {1: 600, 2: 1000, 3: 500, 4: 2000}  # num_utilitario: kilos
     utilitarios.pop(camion_norte, None)
     utilitarios.pop(camion_centro, None)
@@ -386,7 +412,7 @@ def procesado_pedidos(zona: dict, dir: str, camion_norte: int, camion_centro: in
 
     ciudades_pedidos: list = []
 
-    lineas_pedidos: list = [] # Para marcar pedidos entregados o no
+    lineas_pedidos: list = []  # Para marcar pedidos entregados o no
     lineas_si_no: dict = {'si': [], 'no': []}
 
     archivo_pedidos = open(f'{dir}\pedidos.csv', 'r', encoding="UTF-8")
@@ -394,7 +420,7 @@ def procesado_pedidos(zona: dict, dir: str, camion_norte: int, camion_centro: in
     # Lee linea a linea el archivo pedidos.csv para obtener los pedidos de zona {palabra}
     for registro, linea in enumerate(archivo_pedidos):
         linea = linea.split(',')
-        if linea[4].lower() in zona.keys():
+        if linea[4].lower() in zona:
 
             nueva_cantidad = articulos[int(linea[5])][1] + int(linea[7])
             if int(linea[5]) == 1334:
@@ -489,6 +515,8 @@ def normaliza_pedidos(dir: str):
             linea[4] = unicodedata.normalize("NFKD", linea[4]).encode("ascii", "ignore").decode("ascii")
             # Convierte colores en minuscula
             linea[6] = linea[6].lower()
+            # Capitaliza ciudades
+            linea[3] = linea[3].capitalize()
             linea = ','.join(linea)
             lineas_guardar.append(linea)
 
@@ -739,7 +767,7 @@ def validar_archivo() -> str:
     return direccion_archivo
 
 
-def determina_recorrido(zona_norte: dict, zona_centro: dict, zona_sur: dict, direccion_archivo: str) -> None:
+def determina_recorrido(zona_norte: list, zona_centro: list, zona_sur: list, direccion_archivo: str) -> None:
     '''Tomas las zonas, y direccion de archivo para ejecutar los recorridos'''
     iniciar: str = '1'
     while int(iniciar) == 1:
@@ -749,6 +777,7 @@ def determina_recorrido(zona_norte: dict, zona_centro: dict, zona_sur: dict, dir
 
         while opcion.isnumeric() is False or int(opcion) not in (1, 2, 3):
             opcion: str = input('Ingrese una opcion valida: ')
+        print('\nAguarde, calculando el recorrido mas óptimo...')
 
         if int(opcion) == 1:
 
@@ -765,14 +794,15 @@ def determina_recorrido(zona_norte: dict, zona_centro: dict, zona_sur: dict, dir
         while iniciar.isnumeric() is False or int(iniciar) not in (1, 2):
             accion: str = input('Ingrese una opcion valida: ')
 
-def procesar_pedido(zona_norte: dict, zona_centro: dict, zona_sur: dict, direccion_archivo: str) -> list:
+def procesar_pedido(zona_norte: list, zona_centro: list, zona_sur: list, direccion_archivo: str) -> list:
     '''Toma las zonas para usarlas en la funcion procesado_pedidos y devuelve el listado de pedidos con flag de entregado si/no'''
     camion_norte: int
     camion_centro: int
     camion_sur: int
     listado_pedidos: list = []
-    zona_caba: dict = {'buenos aires': [34.6037, 58.3816]}
+    zona_caba: list = ['buenos aires']
 
+    print('\nAguarde, procesando los pedidos...')
     camion_norte = procesado_pedidos(zona_norte, direccion_archivo, 0, 0, 0, 'Norte')
 
     camion_centro = procesado_pedidos(zona_centro, direccion_archivo, camion_norte, 0, 0, 'Centro')
@@ -817,7 +847,7 @@ def articulos_mas_pedidos(direccion_archivo:str,lista_pedidos_entregados:list ,p
         articulo_mas_pedido(productos, productos_entregados)
 
 
-def imprimir_menu(zona_norte:dict, zona_centro:dict, zona_sur:dict, direccion_archivo:str, productos:dict , productos_entregados:dict ):
+def imprimir_menu(zona_norte: list, zona_centro: list, zona_sur: list, direccion_archivo:str, productos:dict , productos_entregados:dict ):
     #Pre: Recibe varios diccionarios y un string, entre esos son: Ubicaciones de distintas provincias dividias en zona norte, central y sur; una dirección de archivos (string), y dos diccionarios vacios que se usarán en las funciones.
     #Post: Muestra el menú y deja al usuario decidir que función quiere ejecutar mediante el uso de opciones numéricas. Dependiendo la opción decidida, se mostrará la información correspondiente hasta que el usuario decida salir del menú.
     cerrar_menu:bool = False
@@ -887,22 +917,13 @@ def main():
     contadores_botellas: dict = {"Verde": 0, "Negro": 0, "Rojo": 0, "Azul": 0, "Amarillo": 0}
     contadores_vasos: dict = {"Negro": 0, "Azul": 0}
 
-    zona_norte:dict = {'catamarca': [28.4696, 65.7795], 'cordoba': [31.4201, 64.1888],
-                  'chaco': [26.5858, 60.9540], 'corrientes': [28.5842, 58.0072],
-                  'formosa': [26.1858, 58.1756],
-                  'jujuy': [24.1858, 65.2995], 'la rioja': [29.4135, 66.8565],
-                  'misiones': [26.9377, 54.4342],
-                  'salta': [24.7821, 65.4232], 'santiago del estero': [27.7834, 64.2642],
-                  'tucuman': [26.8083, 65.2176],
-                  'entre rios': [32.5176, 59.1042], 'mendoza': [32.8895, 68.8458],
-                  'san juan': [31.5351, 68.5386],
-                  'san luis': [33.3017, 66.3378], 'santa fe': [31.6107, 60.6973],
-                  'buenos aires': [34.6037, 58.3816]}
+    zona_norte: list = ['catamarca', 'cordoba', 'chaco', 'corrientes', 'formosa', 'jujuy', 'la rioja', 'misiones',
+                        'salta', 'santiago del estero', 'tucuman', 'entre rios', 'mendoza', 'san juan', 'san luis',
+                        'santa fe', 'buenos aires']
 
-    zona_centro:dict = {'la pampa': [37.8957, 65.0958], 'neuquen': [38.9517, 68.0592]}
+    zona_centro: list = ['la pampa', 'neuquen']
 
-    zona_sur:dict = {'chubut': [43.6846, 69.2746], 'rio negro': [40.7344, 66.6176],
-                'santa cruz': [48.7737, 69.1917], 'tierra del fuego': [54.3084, 67.7452]}
+    zona_sur: list = ['chubut', 'rio negro', 'santa cruz', 'tierra del fuego']
 
 
     folder: str = os.getcwd() + "\Lote0001"
