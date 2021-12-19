@@ -141,6 +141,7 @@ def verificacion_escaner(objeto: str) -> str:
 def imagenes_carpeta(carpeta, contador_botellas: dict, contador_vasos: dict):
     #Pre: tiene que ingresar una direccion que lleve a una carpeta con archivos dentro, recibe los diccionarios contadores de botellas y vasos.
     #Post: recorre, carga y analiza los archivos dentro de la carpeta recibida uno por uno.
+    print("Analizando imagenes seleccionadas, por favor aguarde unos instantes")
     for filename in os.listdir(carpeta):
         img = cv2.imread(os.path.join(carpeta, filename))
         objeto = image_detect(img)
