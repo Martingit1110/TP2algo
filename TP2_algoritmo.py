@@ -184,8 +184,8 @@ def cantidades_txt(contador_botellas: dict, contador_vasos: dict) -> None:
 
 
 
-def ABM(dir: str) -> str:
-    '''Toma direccion de archivo pedidos y la devuelve.
+def ABM(dir: str, contadores_botellas: dict) -> str:
+    '''Toma direccion de archivo pedidos y la devuelve. Tambien toma contadores_botellas para corroborar ingreso de color.
     Permite modificar, agregar o eliminir pedidos'''
     iniciar: str = '1'
     while int(iniciar) == 1:
@@ -226,21 +226,43 @@ def ABM(dir: str) -> str:
                         print(f'{conteo_registro}: {pedidos_titulos[i]} - {linea[i]}')
                         conteo_registro += 1
 
-                    accion = input('Cual dato desea modificar? Escriba numero: ')
-                    while accion.isnumeric() is False or int(accion) not in (1, 2, 3, 4, 5, 6, 7, 8, 9):
-                        accion: str = input('Ingrese una opcion valida: ')
+                    opcion = input('Cual dato desea modificar? Escriba numero: ')
+                    while opcion.isnumeric() is False or int(opcion) not in (1, 2, 3, 4, 5, 6, 7, 8, 9):
+                        opcion: str = input('Ingrese una opcion valida: ')
                     # Modifica
-                    valor = input('Ingrese nuevo valor: ')
-                    if int(accion) == 5:
+                    if int(opcion) == 2:
+                        dia = input(f'Para la fecha: \n- Ingrese día de dos digitos:')
+                        while dia.isnumeric() is False or len(dia) != 2:
+                            dia = input('Incorrecto, pruebe nuevamente:')
+                        while not 1 <= int(dia) <= 31:
+                            dia = input('Incorrecto, pruebe nuevamente:')
+                        mes = input('- Ingrese mes de dos digitos:')
+                        while mes.isnumeric() is False or len(mes) != 2:
+                            mes = input('Incorrecto, pruebe nuevamente:')
+                        while not 1 <= int(mes) <= 12:
+                            mes = input('Incorrecto, pruebe nuevamente:')
+                        anio = input('- Ingrese año de 4 digitos:')
+                        while anio.isnumeric() is False or len(anio) != 4:
+                            anio = input('Incorrecto, pruebe nuevamente:')
+                        valor = f'{dia}/{mes}/{anio}'
+                    else:
+                        valor = input('Ingrese nuevo valor: ')
+
+                    if int(opcion) == 4:
+                        valor = valor.capitalize()
+                    elif int(opcion) == 5:
                         # Remueve tildes para provincias
                         valor = unicodedata.normalize("NFKD", valor).encode("ascii", "ignore").decode("ascii")
-                    elif int(accion) == 4:
-                        valor = valor.capitalize()
-                    elif int(accion) == 7:
+                    elif int(opcion) == 6:
+                        while valor != '1334' or valor != '568':
+                            valor = input('Ingrese codigo correcto 1334/568:')
+                    elif int(opcion) == 7:
+                        while valor.capitalize() not in contadores_botellas.keys():
+                            valor = input('Color incorrecto o mal escrito, pruebe nuevamente:')
                         valor = valor.lower()
-                    elif int(accion) == 9:
+                    elif int(opcion) == 9:
                         valor = valor + '\n'
-                    linea[int(accion) - 1] = valor
+                    linea[int(opcion) - 1] = valor
                     nueva_linea = ','.join(linea)
                     lineas_nuevo_archivo.append(nueva_linea)
 
@@ -260,6 +282,22 @@ def ABM(dir: str) -> str:
                 if i == 'Nro. Pedido':
                     valor = '\n' + input(f'Ingrese {i}: ')
                     linea.append(valor)
+                elif i == 'Fecha':
+                    dia = input(f'Para la fecha: \n- Ingrese día de dos digitos:')
+                    while dia.isnumeric() is False or len(dia) != 2:
+                        dia = input('Incorrecto, pruebe nuevamente:')
+                    while not 1 <= int(dia) <= 31:
+                        dia = input('Incorrecto, pruebe nuevamente:')
+                    mes = input('- Ingrese mes de dos digitos:')
+                    while mes.isnumeric() is False or len(mes) != 2:
+                        mes = input('Incorrecto, pruebe nuevamente:')
+                    while not 1 <= int(mes) <= 12:
+                        mes = input('Incorrecto, pruebe nuevamente:')
+                    anio = input('- Ingrese año de 4 digitos:')
+                    while anio.isnumeric() is False or len(anio) != 4:
+                        anio = input('Incorrecto, pruebe nuevamente:')
+                    valor = f'{dia}/{mes}/{anio}'
+                    linea.append(valor)
                 elif i == 'Provincia':
                     valor = input(f'Ingrese {i}: ')
                     # Remueve tildes
@@ -269,8 +307,15 @@ def ABM(dir: str) -> str:
                     valor = input(f'Ingrese {i}: ')
                     valor = valor.capitalize()
                     linea.append(valor)
+                elif i == 'Cod. Artículo':
+                    valor = input(f'Ingrese {i}\nPara botellas 1334 o para vasos 568:')
+                    while valor != '1334' or valor != '568':
+                        valor = input('Ingrese codigo correcto 1334/568:')
                 elif i == 'Color':
                     valor = input(f'Ingrese {i}: ')
+                    # Contadores_botellas tiene todos los colores, no hace falta chequear en vasos
+                    while valor.capitalize() not in contadores_botellas.keys():
+                        valor = input(f'Color incorrecto o mal escrito, pruebe nuevamente: ')
                     valor = valor.lower()
                     linea.append(valor)
                 else:
@@ -304,7 +349,7 @@ def ABM(dir: str) -> str:
     return dir
 
 def distancia_ciudades(ciudad1: str, ciudad2: str) -> float:
-    # Toma dos ciudades como parámetros y devuelve la distancia en kilometros como float.
+    '''Toma dos ciudades como parámetros y devuelve la distancia en kilometros como float.'''
     ctx = ssl.create_default_context(cafile=certifi.where())
     geopy.geocoders.options.default_ssl_context = ctx
     geolocator = Nominatim(user_agent='ivan')
@@ -323,7 +368,7 @@ def distancia_ciudades(ciudad1: str, ciudad2: str) -> float:
     return distancia
 
 def recorrido(zona: list, palabra: str, dir: str, imprimir: str) -> list:
-    '''Toma el diccionario para la zona correspondiente, la palabra norte/centro/sur, direccion de archivo e
+    '''Toma la lista para la zona correspondiente, la palabra norte/centro/sur, direccion de archivo e
     imprimir como string de si/no ya que esta funcion tambien es usada por procesado_pedidos()
     para corroborar distancia óptima y no quiero que haga prints.
     Devuelve un listado de las ciudades ordenadas por recorrido mas óptimo para usarse en la funcion de
@@ -383,7 +428,6 @@ def recorrido(zona: list, palabra: str, dir: str, imprimir: str) -> list:
     archivo_pedidos.close()
     return procesado_pedidos_lista
 
-
 def pedidos_entregados(registros: dict, dir: str):
     '''Toma diccionario de registros como valores para las claves si y no, tambien direccion de carpeta de archivos.
     Crea archivo pedidos_realizados.csv con los pedidos con flag de entregados si/no'''
@@ -404,6 +448,7 @@ def pedidos_entregados(registros: dict, dir: str):
             lineas_pedidos2.append(linea)
 
     archivo_pedidos.close()
+
     # Crea nuevo archivo (si no existe) con el flag de entregado si/no
     if not os.path.isfile(f'{dir}\pedidos_realizados.csv'):
         archivo_pedidos = open(f'{dir}\pedidos_realizados.csv', 'w', encoding="UTF-8")
@@ -415,87 +460,117 @@ def pedidos_entregados(registros: dict, dir: str):
         archivo_pedidos.close()
 
 
-def procesado_pedidos(zona: list, dir: str, camion_norte: int, camion_centro: int, camion_sur: int,
-                      palabra: str) -> int:
-    '''Toma el diccionario para la zona correspondiente, direccion de archivo, la palabra norte/centro/sur, y el
+def procesado_pedidos(zona_norte: list, zona_centro: list, zona_sur: list, zona_caba: list, dir: str,
+                      utilitario_asignado: int, contadores_botellas: dict,
+                      contadores_vasos: dict, contador: int, utilitarios: dict) -> str:
+    '''Toma las listas de zonas, direccion de archivo, la palabra norte/centro/sur, y el
     numero de utilitario ya usado para no tenerlo en cuenta en la próxima corrida.
-    Devuelve el numero de utilitario usado y crea el archivo salida.txt con la informacion de cada recorrido'''
-    utilitarios: dict = {1: 600, 2: 1000, 3: 500, 4: 2000}  # num_utilitario: kilos
-    utilitarios.pop(camion_norte, None)
-    utilitarios.pop(camion_centro, None)
-    utilitarios.pop(camion_sur, None)
+    Tambien necesita los contadores para procesar con el stock. Una variable contador para solo ejecutarse 4 veces
+     -1 vez por zona- y el diccionario utilitarios.
+    Devuelve la direccion del archivo'''
+
+    utilitarios.pop(utilitario_asignado, None)
     articulos: dict = {1334: [0.450, 0], 568: [0.350, 0]}  # num_art: [kilos, cantidad]
 
-    peso_final: int = 0
-    peso_referencia: int = 10000000
-    utilitario_asignado: int = 0
+    if contador < 4:
+        if contador == 0:
+            zona: list = zona_norte
+            palabra: str = 'Norte'
+        elif contador == 1:
+            zona: list = zona_centro
+            palabra: str = 'Centro'
+        elif contador == 2:
+            zona: list = zona_sur
+            palabra: str = 'Sur'
+        elif contador == 3:
+            zona: list = zona_caba
+            palabra: str = 'CABA'
 
-    ciudades_pedidos: list = []
+        ciudades_pedidos: list = []
+        peso_final: int = 0
+        peso_referencia: int = 10000000
+        lineas_si_no: dict = {'si': [], 'no': []}
+        archivo_pedidos = open(f'{dir}\pedidos.csv', 'r', encoding="UTF-8")
 
-    lineas_pedidos: list = []  # Para marcar pedidos entregados o no
-    lineas_si_no: dict = {'si': [], 'no': []}
+        # Lee linea a linea el archivo pedidos.csv para obtener los pedidos de zona
+        for registro, linea in enumerate(archivo_pedidos):
+            linea = linea.split(',')
+            stock_disponible: str = 'no'  # determina si hay stock para el pedido actual
+            if linea[4].lower() in zona:
 
-    archivo_pedidos = open(f'{dir}\pedidos.csv', 'r', encoding="UTF-8")
+                if int(linea[5]) == 1334:
+                    # Modifico cantidad de acuerdo al stock disponible
+                    stock = contadores_botellas[linea[6].capitalize()]
+                    if int(linea[7]) <= stock:
+                        nuevo_stock = stock - int(linea[7])
+                        contadores_botellas[linea[6].capitalize()] = nuevo_stock
+                        stock_disponible: str = 'si'
 
-    # Lee linea a linea el archivo pedidos.csv para obtener los pedidos de zona {palabra}
-    for registro, linea in enumerate(archivo_pedidos):
-        linea = linea.split(',')
-        if linea[4].lower() in zona:
-
-            nueva_cantidad = articulos[int(linea[5])][1] + int(linea[7])
-            if int(linea[5]) == 1334:
-                peso_final = (articulos[1334][0] * nueva_cantidad) + (articulos[568][0] * articulos[568][1])
+                        nueva_cantidad: int = articulos[int(linea[5])][1] + int(linea[7])
+                        peso_final = (articulos[1334][0] * nueva_cantidad) + (articulos[568][0] * articulos[568][1])
 
 
-            elif int(linea[5]) == 568:
-                peso_final = (articulos[1334][0] * articulos[1334][1]) + (articulos[568][0] * nueva_cantidad)
+                elif int(linea[5]) == 568:
+                    # Modifico cantidad de acuerdo al stock disponible
+                    stock = contadores_vasos[linea[6].capitalize()]
+                    if int(linea[7]) <= stock:
+                        nuevo_stock = stock - int(linea[7])
+                        contadores_vasos[linea[6].capitalize()] = nuevo_stock
+                        stock_disponible: str = 'si'
 
-            if peso_final <= max(utilitarios.values()):
-                # Calcula resta entre pesos de utilitarios y peso de articulos actuales
-                for i in utilitarios.keys():
-                    resta = utilitarios[i] - peso_final
-                    if 0 <= resta < peso_referencia:
-                        articulos[int(linea[5])][1] = nueva_cantidad
-                        utilitario_asignado = i
-                        peso_referencia = resta
-                        ciudades_pedidos.append(linea[3].lower())
-                        # Pedidos entregados
-                        lineas_si_no['si'].append(registro)
-            # Pedidos no entregados
-            elif peso_final > max(utilitarios.values()):
-                lineas_si_no['no'].append(registro)
-    archivo_pedidos.close()
+                        nueva_cantidad: int = articulos[int(linea[5])][1] + int(linea[7])
+                        peso_final = (articulos[1334][0] * articulos[1334][1]) + (articulos[568][0] * nueva_cantidad)
 
-    # Genero archivo pedidos nuevo con flag de entregados si/no
-    pedidos_entregados(lineas_si_no, dir)
-    # Obtengo recorrido optimo
-    ciudades_recorridas = recorrido(zona, palabra.lower(), dir, 'no')
 
-    ciudades_salida_txt: list = []
-    # Comparo recorrido optimo con las ciudades a las que sí podrán entregarse los pedidos
-    for i in ciudades_recorridas:
-        if i in ciudades_pedidos:
-            ciudades_salida_txt.append(i)
-    mostrar_ciudades = ", ".join(ciudades_salida_txt)
+                if peso_final <= max(utilitarios.values()) and stock_disponible == 'si':
+                    # Calcula resta entre pesos de utilitarios y peso de articulos actuales
+                    for i in utilitarios.keys():
+                        resta = utilitarios[i] - peso_final
+                        if 0 <= resta < peso_referencia:
+                            articulos[int(linea[5])][1] = nueva_cantidad
+                            utilitario_asignado = i
+                            peso_referencia = resta
+                            ciudades_pedidos.append(linea[3].lower())
+                            # Pedidos entregados
+                            lineas_si_no['si'].append(registro)
+                # Pedidos no entregados
+                elif peso_final > max(utilitarios.values()) or stock_disponible == 'no':
+                    lineas_si_no['no'].append(registro)
+        archivo_pedidos.close()
 
-    peso_final = (articulos[1334][0] * articulos[1334][1]) + (articulos[568][0] * articulos[568][1])
+        # Genero archivo pedidos nuevo con flag de entregados si/no
+        pedidos_entregados(lineas_si_no, dir)
 
-    if not os.path.isfile(f'{dir}\salida.txt') and utilitario_asignado != 0:
-        archivo_salida = open(f'{dir}\salida.txt', 'w', encoding="UTF-8")
-        archivo_salida.write(f'Zona {palabra}\nUtilitario 00{utilitario_asignado}\n{int(peso_final)} kg')
-        archivo_salida.write(f'\nRecorrido: {mostrar_ciudades}')
-        archivo_salida.close()
-    elif os.path.isfile(f'{dir}\salida.txt') and utilitario_asignado != 0:
-        archivo_salida = open(f'{dir}\salida.txt', 'a', encoding="UTF-8")
-        archivo_salida.write(f'\nZona {palabra}\nUtilitario 00{utilitario_asignado}\n{int(peso_final)} kg')
-        if palabra != 'CABA':
+        # Obtengo recorrido optimo
+        ciudades_recorridas = recorrido(zona, palabra.lower(), dir, 'no')
+
+        ciudades_salida_txt: list = []
+        # Comparo recorrido optimo con las ciudades a las que sí podrán entregarse los pedidos
+        for i in ciudades_recorridas:
+            if i in ciudades_pedidos:
+                ciudades_salida_txt.append(i)
+        mostrar_ciudades = ", ".join(ciudades_salida_txt)
+
+        peso_final = (articulos[1334][0] * articulos[1334][1]) + (articulos[568][0] * articulos[568][1])
+
+        if not os.path.isfile(f'{dir}\salida.txt') and utilitario_asignado != 0 and peso_final > 0:
+            archivo_salida = open(f'{dir}\salida.txt', 'w', encoding="UTF-8")
+            archivo_salida.write(f'Zona {palabra}\nUtilitario 00{utilitario_asignado}\n{int(peso_final)} kg')
             archivo_salida.write(f'\nRecorrido: {mostrar_ciudades}')
-        elif palabra == 'CABA':
-            archivo_salida.write(f'\nRecorrido: CABA')
-        archivo_salida.close()
+            archivo_salida.close()
+        elif os.path.isfile(f'{dir}\salida.txt') and utilitario_asignado != 0 and peso_final > 0:
+            archivo_salida = open(f'{dir}\salida.txt', 'a', encoding="UTF-8")
+            archivo_salida.write(f'\nZona {palabra}\nUtilitario 00{utilitario_asignado}\n{int(peso_final)} kg')
+            if palabra != 'CABA':
+                archivo_salida.write(f'\nRecorrido: {mostrar_ciudades}')
+            elif palabra == 'CABA':
+                archivo_salida.write(f'\nRecorrido: CABA')
+            archivo_salida.close()
 
-    return utilitario_asignado
-
+        return procesado_pedidos(zona_norte, zona_centro, zona_sur, zona_caba, dir, utilitario_asignado,
+                                 contadores_botellas, contadores_vasos, contador + 1, utilitarios)
+    else:
+        return dir
 
 def crea_lista_pedidos(dir: str) -> list:
     '''Toma la direccion para archivos. Abre el archivo pedidos_realizados.csv y devuelve en lista los pedidos
@@ -522,8 +597,9 @@ def crea_lista_pedidos(dir: str) -> list:
     return listado_pedidos
 
 
-def normaliza_pedidos(dir: str):
-    '''Toma la direccion del archivo para poder remover las tildes en las provincias y lo guarda.
+def normaliza_pedidos(dir: str, contadores_botellas: dict, contadores_vasos: dict):
+    '''Toma la direccion del archivo para poder modificar datos que puedan estar incorrectos en pedidos.csv y
+    romper el programa. Utiliza los contadores para corroborar que los colores sean validos.
     A su vez elimina archivos pedidos_realizados y salida.txt de corridas previas para no tener informacion vieja'''
     archivo_pedidos = open(f'{dir}\pedidos.csv', 'r', encoding="UTF-8")
     lineas_guardar: list = []
@@ -531,6 +607,20 @@ def normaliza_pedidos(dir: str):
     for registro, linea in enumerate(archivo_pedidos):
         if registro != 0 and linea != '\n':
             linea = linea.split(',')
+            # Chequea colores
+            if linea[5] == '1334' and linea[6].capitalize() not in contadores_botellas.keys():
+                print(f'\n ALERTA\nEn su archivo de pedidos, en la linea {registro + 1} el color es incorrecto.')
+                nuevo_color = input(f'El color actual es {linea[6]} en una botella, por favor ingrese aquí un color valido:')
+                while nuevo_color.capitalize() not in contadores_botellas.keys():
+                    nuevo_color = input('Ingrese color correcto:')
+                linea[6] = nuevo_color
+            elif linea[5] == '568' and linea[6].capitalize() not in contadores_vasos.keys():
+                print(f'\n ALERTA\nEn su archivo de pedidos, en la linea {registro + 1} el color es incorrecto.')
+                nuevo_color = input(
+                    f'El color actual es {linea[6]} en un vaso, por favor ingrese aquí un color valido:')
+                while nuevo_color.capitalize() not in contadores_vasos.keys():
+                    nuevo_color = input('Ingrese color correcto:')
+                linea[6] = nuevo_color
             # Quita tildes en provincias
             linea[4] = unicodedata.normalize("NFKD", linea[4]).encode("ascii", "ignore").decode("ascii")
             # Convierte colores en minuscula
@@ -635,11 +725,15 @@ def pedidos_realizados(listado_pedidos_ordenado: list) -> None:
         if listado_pedidos_ordenado[i][0] != numero_de_pedido:
             numero_pedidos_entregados += 1
             numero_de_pedido = listado_pedidos_ordenado[i][0]
-   print(f"La cantidad de pedidos realizados es: {numero_pedidos_entregados}\n") #printea la cantidad de pedidos realizados.
+   # Printea la cantidad de pedidos realizados.
+    print(f"La cantidad de pedidos realizados es: {numero_pedidos_entregados}\n")
     print("A continuación se mostrará la lista por orden de antigüedad:\n")
     for i in range(len(listado_pedidos_ordenado)):
-        print(f"Fecha: {listado_pedidos_ordenado[i][1]}, numero de pedido: {listado_pedidos_ordenado[i][0]}, cliente: {listado_pedidos_ordenado[i][2]}, ciudad: {listado_pedidos_ordenado[i][3]}, provincia: {listado_pedidos_ordenado[i][4]}, código de articulo: {listado_pedidos_ordenado[i][5]}, color: {listado_pedidos_ordenado[i][6]}, cantidad: {listado_pedidos_ordenado[i][7]}, descuento: {listado_pedidos_ordenado[i][8]}\n")
-
+        print(f"Fecha: {listado_pedidos_ordenado[i][1]}, numero de pedido: {listado_pedidos_ordenado[i][0]}, "
+              f"cliente: {listado_pedidos_ordenado[i][2]}, ciudad: {listado_pedidos_ordenado[i][3]}, "
+              f"provincia: {listado_pedidos_ordenado[i][4]}, código de articulo: {listado_pedidos_ordenado[i][5]}, "
+              f"color: {listado_pedidos_ordenado[i][6]}, cantidad: {listado_pedidos_ordenado[i][7]}, "
+              f"descuento: {listado_pedidos_ordenado[i][8]}\n")
 
 def pedidos_rosario(lista_pedidos_entregados: list) -> None:
     # Pre: recibe los pedidos entregados.
@@ -814,26 +908,27 @@ def determina_recorrido(zona_norte: list, zona_centro: list, zona_sur: list, dir
         while iniciar.isnumeric() is False or int(iniciar) not in (1, 2):
             accion: str = input('Ingrese una opcion valida: ')
 
-def procesar_pedido(zona_norte: list, zona_centro: list, zona_sur: list, direccion_archivo: str) -> list:
-    '''Toma las zonas para usarlas en la funcion procesado_pedidos y devuelve el listado de pedidos con flag de entregado si/no'''
-    camion_norte: int
-    camion_centro: int
-    camion_sur: int
+def procesar_pedido(zona_norte: list, zona_centro: list, zona_sur: list, direccion_archivo: str,
+                    contadores_botellas: dict, contadores_vasos: dict) -> list:
+    '''Toma las zonas para usarlas en la funcion procesado_pedidos, tambien los contadores para armar pedidos de acuerdo
+     al stock y devuelve el listado de pedidos con flag de entregado si/no'''
+
     listado_pedidos: list = []
     zona_caba: list = ['buenos aires']
+    utilitarios: dict = {1: 600, 2: 1000, 3: 500, 4: 2000}  # num_utilitario: kilos
 
     print('\nAguarde, procesando los pedidos...')
-    camion_norte = procesado_pedidos(zona_norte, direccion_archivo, 0, 0, 0, 'Norte')
 
-    camion_centro = procesado_pedidos(zona_centro, direccion_archivo, camion_norte, 0, 0, 'Centro')
-
-    camion_sur = procesado_pedidos(zona_sur, direccion_archivo, camion_norte, camion_centro, 0, 'Sur')
-
-    camion_caba = procesado_pedidos(zona_caba, direccion_archivo, camion_norte, camion_centro, camion_sur, 'CABA')
+    procesado_pedidos(zona_norte, zona_centro, zona_sur, zona_caba, direccion_archivo, 0,
+                      contadores_botellas, contadores_vasos, 0, utilitarios)
 
     listado_pedidos = crea_lista_pedidos(direccion_archivo)
 
-    print(f'Se han procesado los pedidos. Guardado en:\n{direccion_archivo}\salida.txt')
+    if os.path.isfile(f'{direccion_archivo}\salida.txt'):
+        print(f'Se han procesado los pedidos. Guardado en:\n{direccion_archivo}\salida.txt')
+    elif not os.path.isfile(f'{direccion_archivo}\salida.txt'):
+        print('No se envía ningun pedido por falta de stock o por ser demasiado peso para los utilitarios')
+
     return listado_pedidos
 
 def pedidos_completados(listado_pedidos:list , direccion_archivo:str)->None:
@@ -867,9 +962,12 @@ def articulos_mas_pedidos(direccion_archivo:str,lista_pedidos_entregados:list ,p
         articulo_mas_pedido(productos, productos_entregados)
 
 
-def imprimir_menu(zona_norte: list, zona_centro: list, zona_sur: list, direccion_archivo:str, productos:dict , productos_entregados:dict ):
-    #Pre: Recibe varios diccionarios y un string, entre esos son: Ubicaciones de distintas provincias dividias en zona norte, central y sur; una dirección de archivos (string), y dos diccionarios vacios que se usarán en las funciones.
-    #Post: Muestra el menú y deja al usuario decidir que función quiere ejecutar mediante el uso de opciones numéricas. Dependiendo la opción decidida, se mostrará la información correspondiente hasta que el usuario decida salir del menú.
+def imprimir_menu(zona_norte: list, zona_centro: list, zona_sur: list, direccion_archivo: str, productos: dict,
+                  productos_entregados: dict, contadores_botellas: dict, contadores_vasos: dict):
+    '''Pre: Recibe varios diccionarios y un string, entre esos son: Ubicaciones de distintas provincias dividias en zona 
+    norte, central y sur; una dirección de archivos (string), y dos diccionarios vacios que se usarán en las funciones.
+    Post: Muestra el menú y deja al usuario decidir que función quiere ejecutar mediante el uso de opciones numéricas. 
+    Dependiendo la opción decidida, se mostrará la información correspondiente hasta que el usuario decida salir del menú.'''
     cerrar_menu:bool = False
     accion:str
     opcion:str
@@ -898,15 +996,17 @@ def imprimir_menu(zona_norte: list, zona_centro: list, zona_sur: list, direccion
 
         if int(accion) == 1:
 
-            direccion_archivo = ABM(direccion_archivo)
+            direccion_archivo = ABM(direccion_archivo, contadores_botellas)
+            normaliza_pedidos(direccion_archivo, contadores_botellas, contadores_vasos)
 
         elif int(accion) == 2:
-            
-            determina_recorrido(zona_norte, zona_centro, zona_sur , direccion_archivo )
+
+            determina_recorrido(zona_norte, zona_centro, zona_sur, direccion_archivo)
 
         elif int(accion) == 3:
 
-            listado_pedidos=procesar_pedido(zona_norte, zona_centro, zona_sur, direccion_archivo)
+            listado_pedidos = procesar_pedido(zona_norte, zona_centro, zona_sur, direccion_archivo, contadores_botellas,
+                                              contadores_vasos)
             lista_pedidos_entregados = crear_lista_pedidos_entregados(listado_pedidos)
             lista_pedidos_no_entregados = crear_lista_pedidos_no_entregados(listado_pedidos)
             volver_menu()
@@ -950,8 +1050,9 @@ def main():
 
     imagenes_carpeta(folder, contadores_botellas, contadores_vasos)
     direccion_archivo: str = validar_archivo()
-    normaliza_pedidos(direccion_archivo)
-    imprimir_menu(zona_norte, zona_centro, zona_sur, direccion_archivo, productos, productos_entregados)
+    normaliza_pedidos(direccion_archivo, contadores_botellas, contadores_vasos)
+    imprimir_menu(zona_norte, zona_centro, zona_sur, direccion_archivo, productos, productos_entregados,
+                  contadores_botellas, contadores_vasos)
     cantidades_txt(contadores_botellas, contadores_vasos)
 
 
