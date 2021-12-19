@@ -10,7 +10,8 @@ import geopy.geocoders
 
 
 def load_yolo():
-    # Pos: levanta la red Neuronal con los archivos de pesos pre-entrenados de YoloV3, el archivo de configuración y el archivo de nombres
+    '''Pos: levanta la red Neuronal con los archivos de pesos pre-entrenados de YoloV3, el archivo de configuración y
+    el archivo de nombres'''
 
     net = cv2.dnn.readNet("yolov3.weights", "yolov3.cfg")
     classes: list = []
@@ -24,8 +25,8 @@ def load_yolo():
 
 
 def load_image(img_path) -> tuple:
-    # Pre: Debe recibir la ruta de una imegen
-    # Pos: lee la imagen  y cambia su tamaño  y retorna la imagen con las nuevas dimenciones ( alto, ancho..)
+    '''Pre: Debe recibir la ruta de una imegen
+    Pos: lee la imagen  y cambia su tamaño  y retorna la imagen con las nuevas dimenciones ( alto, ancho..)'''
 
     # img = cv2.imread(img_path)
     img = cv2.resize(img_path, None, fx=0.4, fy=0.4)
@@ -35,8 +36,8 @@ def load_image(img_path) -> tuple:
 
 
 def detect_objects(img, net, outputLayers):
-    # Pre: Recibe una imagen, y las capas de salida de la red
-    # Pos: Se aplica la  red neuronal sobre la imagen
+    '''Pre: Recibe una imagen, y las capas de salida de la red
+    Pos: Se aplica la  red neuronal sobre la imagen'''
 
     blob = cv2.dnn.blobFromImage(img, scalefactor=0.00392, size=(320, 320), mean=(0, 0, 0), swapRB=True, crop=False)
     net.setInput(blob)
@@ -48,15 +49,16 @@ def detect_objects(img, net, outputLayers):
 def get_box_dimensions(outputs, height, width) -> tuple:
     """ Esta funcion recibe como parametro :
 
-    outputs: Recibe una lista anidada que contiene información sobre todos los objetos detectados asi como tambien la altura
-    y el ancho del cuadro delimitador,la confianza y las puntuaciones para todas las clases de objetos enumerados en coco.names.
+    outputs: Recibe una lista anidada que contiene información sobre todos los objetos detectados asi como tambien la
+    altura y el ancho del cuadro delimitador,la confianza y las puntuaciones para todas las clases de objetos
+    enumerados en coco.names.
 
     height:Altura de la imagen
 
     width: Ancho de la imagen
 
     Retorna una tupla, compuesta por tres lista:
-    
+
     confs: con todos los cuadros delimitadores previstos con una confianza de más del 30 %.
     boxes:los vértices del cuadro delimitador
     class_id : índice de clase del objeto predicha
@@ -86,9 +88,9 @@ def get_box_dimensions(outputs, height, width) -> tuple:
 
 
 def draw_labels(boxes, confs, colors, class_ids, classes, img) -> str:
-    
-    # Pre: Recibe varias listas la de puntuaciones que almacena la confianza correspondiente a cada objeto y la lista de puntuacion del mismo
-    # Pos: Retorna el objeto detectado
+    '''Pre: Recibe varias listas la de puntuaciones que almacena la confianza correspondiente a cada objeto y la lista
+    de puntuacion del mismo
+    Pos: Retorna el objeto detectado'''
 
     indexes = cv2.dnn.NMSBoxes(boxes, confs, 0.5, 0.4)
     for i in range(len(boxes)):
@@ -99,10 +101,9 @@ def draw_labels(boxes, confs, colors, class_ids, classes, img) -> str:
     return label
 
 
-
 def image_detect(img_path) -> tuple:
-    # Pre: Recibe la ruta de una imagen
-    # Pos: Invoca a distintas funciones para retonar la imagen detectada
+    '''Pre: Recibe la ruta de una imagen
+    Pos: Invoca a distintas funciones para retonar la imagen detectada'''
 
     model, classes, colors, output_layers = load_yolo()
     image, height, width, channels = load_image(img_path)
@@ -113,8 +114,9 @@ def image_detect(img_path) -> tuple:
 
 
 def deteccion_colores(imagen) -> str:
-    #Pre: la imagen tiene que poder mutar su color al rango hsv.
-    #Post: recibe una imagen, verifica si hay alguno de los 5 colores preestablecidos y retorna una cadena que indica el color existente.
+    '''Pre: la imagen tiene que poder mutar su color al rango hsv.
+    Post: recibe una imagen, verifica si hay alguno de los 5 colores preestablecidos y retorna una cadena que indica
+    el color existente.'''
     hsv = cv2.cvtColor(imagen, cv2.COLOR_BGR2HSV)
     colores_rango = {
         "Verde": ([40, 100, 100], [75, 255, 255]),
@@ -133,8 +135,8 @@ def deteccion_colores(imagen) -> str:
 
 
 def contadores_carpeta(objeto: str, color: str, botellas: dict, vasos: dict) -> dict:
-    #Pre: el objeto y el color deben ser cadena, recibe los diccionarios contadores de botellas y vasos.
-    #Post: verifica que objeto es y actualiza el diccionario contador correspondiente.
+    '''Pre: el objeto y el color deben ser cadena, recibe los diccionarios contadores de botellas y vasos.
+    Post: verifica que objeto es y actualiza el diccionario contador correspondiente.'''
     if objeto == "bottle":
         botellas[color] = botellas[color] + 1
     elif objeto == "cup":
@@ -144,22 +146,23 @@ def contadores_carpeta(objeto: str, color: str, botellas: dict, vasos: dict) -> 
             pass
     return botellas, vasos
 
+
 def verificacion_escaner(objeto: str) -> str:
-    #Pre: el objeto debe ser una cadena.
-    #Post: verifica que objeto es y retorna el estado del escaner.
+    '''Pre: el objeto debe ser una cadena.
+    Post: verifica que objeto es y retorna el estado del escaner.'''
     if objeto == "bottle" or objeto == "cup":
         estado = "ok"
-        #print(objeto)
+        # print(objeto)
     else:
         estado = "falla"
-        #print("PROCESO DETENIDO, se reanudo en un minuto")
+        # print("PROCESO DETENIDO, se reanudo en un minuto")
 
     return estado
 
 
 def imagenes_carpeta(carpeta, contador_botellas: dict, contador_vasos: dict):
-    #Pre: tiene que ingresar una direccion que lleve a una carpeta con archivos dentro, recibe los diccionarios contadores de botellas y vasos.
-    #Post: recorre, carga y analiza los archivos dentro de la carpeta recibida uno por uno.
+    '''Pre: tiene que ingresar una direccion que lleve a una carpeta con archivos dentro, recibe los diccionarios contadores de botellas y vasos.
+    Post: recorre, carga y analiza los archivos dentro de la carpeta recibida uno por uno.'''
     print("Analizando imagenes seleccionadas, por favor aguarde unos instantes")
     for filename in os.listdir(carpeta):
         img = cv2.imread(os.path.join(carpeta, filename))
@@ -173,15 +176,14 @@ def imagenes_carpeta(carpeta, contador_botellas: dict, contador_vasos: dict):
 
 
 def cantidades_txt(contador_botellas: dict, contador_vasos: dict) -> None:
-    #Pre: recibe los diccionarios contadores de botellas y vasos.
-    #Post: actualiza o crea los archivos botellas.txt y vasos.txt con los diccionarios recibidos.
+    '''Pre: recibe los diccionarios contadores de botellas y vasos.
+    Post: actualiza o crea los archivos botellas.txt y vasos.txt con los diccionarios recibidos.'''
     with open("botellas.txt", "w") as b:
         for key, value in contador_botellas.items():
             b.write("%s %s\n" % (key, value))
     with open("vasos.txt", "w") as v:
         for key, value in contador_vasos.items():
             v.write("%s %s\n" % (key, value))
-
 
 
 def ABM(dir: str, contadores_botellas: dict) -> str:
@@ -348,6 +350,7 @@ def ABM(dir: str, contadores_botellas: dict) -> str:
 
     return dir
 
+
 def distancia_ciudades(ciudad1: str, ciudad2: str) -> float:
     '''Toma dos ciudades como parámetros y devuelve la distancia en kilometros como float.'''
     ctx = ssl.create_default_context(cafile=certifi.where())
@@ -366,6 +369,7 @@ def distancia_ciudades(ciudad1: str, ciudad2: str) -> float:
     distancia = float(distance.distance(ubicacion1, ubicacion2).km)
 
     return distancia
+
 
 def recorrido(zona: list, palabra: str, dir: str, imprimir: str) -> list:
     '''Toma la lista para la zona correspondiente, la palabra norte/centro/sur, direccion de archivo e
@@ -421,12 +425,13 @@ def recorrido(zona: list, palabra: str, dir: str, imprimir: str) -> list:
             ciudades_descarte.append(ciudad_cercana)
             if imprimir == 'si':
                 print(f'Desde {zona_pedidos_ciudades[ciudad_cercana]}: {ciudad_cercana} hacia '
-                    f'{zona_pedidos_ciudades[ciudad_cercana2]}: {ciudad_cercana2}')
+                      f'{zona_pedidos_ciudades[ciudad_cercana2]}: {ciudad_cercana2}')
             procesado_pedidos_lista.append(ciudad_cercana2)
             ciudad_cercana = ciudad_cercana2
 
     archivo_pedidos.close()
     return procesado_pedidos_lista
+
 
 def pedidos_entregados(registros: dict, dir: str):
     '''Toma diccionario de registros como valores para las claves si y no, tambien direccion de carpeta de archivos.
@@ -521,7 +526,6 @@ def procesado_pedidos(zona_norte: list, zona_centro: list, zona_sur: list, zona_
                         nueva_cantidad: int = articulos[int(linea[5])][1] + int(linea[7])
                         peso_final = (articulos[1334][0] * articulos[1334][1]) + (articulos[568][0] * nueva_cantidad)
 
-
                 if peso_final <= max(utilitarios.values()) and stock_disponible == 'si':
                     # Calcula resta entre pesos de utilitarios y peso de articulos actuales
                     for i in utilitarios.keys():
@@ -572,6 +576,7 @@ def procesado_pedidos(zona_norte: list, zona_centro: list, zona_sur: list, zona_
     else:
         return dir
 
+
 def crea_lista_pedidos(dir: str) -> list:
     '''Toma la direccion para archivos. Abre el archivo pedidos_realizados.csv y devuelve en lista los pedidos
     con flag de entregado si/no'''
@@ -610,7 +615,8 @@ def normaliza_pedidos(dir: str, contadores_botellas: dict, contadores_vasos: dic
             # Chequea colores
             if linea[5] == '1334' and linea[6].capitalize() not in contadores_botellas.keys():
                 print(f'\n ALERTA\nEn su archivo de pedidos, en la linea {registro + 1} el color es incorrecto.')
-                nuevo_color = input(f'El color actual es {linea[6]} en una botella, por favor ingrese aquí un color valido:')
+                nuevo_color = input(
+                    f'El color actual es {linea[6]} en una botella, por favor ingrese aquí un color valido:')
                 while nuevo_color.capitalize() not in contadores_botellas.keys():
                     nuevo_color = input('Ingrese color correcto:')
                 linea[6] = nuevo_color
@@ -649,8 +655,8 @@ def normaliza_pedidos(dir: str, contadores_botellas: dict, contadores_vasos: dic
 
 # Martín
 def crear_lista_pedidos_entregados(listado_pedidos: list) -> list:
-    #Pre: Recibe la lista con TODOS los pedidos.
-    #Post: Entrega una nueva lista solo con los pedidos que fueron entregados.
+    '''Pre: Recibe la lista con TODOS los pedidos.
+    Post: Entrega una nueva lista solo con los pedidos que fueron entregados.'''
     lista_entregados: list = []  # lista vacia
     for sublista in listado_pedidos:  # recorro sublista
         if sublista[9] == "si":
@@ -659,8 +665,8 @@ def crear_lista_pedidos_entregados(listado_pedidos: list) -> list:
 
 
 def crear_lista_pedidos_no_entregados(listado_pedidos: list) -> list:
-    #Pre: Recibe la lista con TODOS los pedidos.
-    #Post: Entrega una nueva lista solo con los pedidos que NO fueron entregados.
+    '''Pre: Recibe la lista con TODOS los pedidos.
+    Post: Entrega una nueva lista solo con los pedidos que NO fueron entregados.'''
     lista_no_entregados: list = []  # lista vacia
     for sublista in listado_pedidos:  # recorro sublista
         if sublista[9] == "no":
@@ -669,8 +675,8 @@ def crear_lista_pedidos_no_entregados(listado_pedidos: list) -> list:
 
 
 def ordenar_pedidos(lista_entregados: list) -> list:
-    #Pre: Recibe una lista un  con los pedidos entregados.
-    #Post: Crea y devulve una lista con los pedidos ordenados por fecha.
+    '''Pre: Recibe una lista un  con los pedidos entregados.
+    Post: Crea y devulve una lista con los pedidos ordenados por fecha.'''
     listado_pedidos_ordenado: list = []
     for item in lista_entregados:
         listado_pedidos_ordenado.append(item)
@@ -679,8 +685,8 @@ def ordenar_pedidos(lista_entregados: list) -> list:
 
 
 def ordenamiento_burbuja(listado_pedidos_ordenado) -> list:
-    #Pre: Recibe una lista con los pedidos entregados.
-    #Post: Devuelve una lista con los pedidos ordenados por fecha.
+    '''Pre: Recibe una lista con los pedidos entregados.
+    Post: Devuelve una lista con los pedidos ordenados por fecha.'''
     orden: bool = False
     while (orden == False):
         orden = True
@@ -709,23 +715,24 @@ def ordenamiento_burbuja(listado_pedidos_ordenado) -> list:
 
 
 def intercambiar(listado_pedidos_ordenado, index) -> None:
-    #Pre: Recibe una lista y una posición dentro de la lista.
-    #Post: Devuelve una nueva posición para el numero dentro de la lista. Es parte del proceso de ordenamiento de la lista.
+    '''Pre: Recibe una lista y una posición dentro de la lista.
+    Post: Devuelve una nueva posición para el numero dentro de la lista. Es parte del proceso de ordenamiento de la lista.'''
     aux: list = listado_pedidos_ordenado[index]
     listado_pedidos_ordenado[index] = listado_pedidos_ordenado[index + 1]
     listado_pedidos_ordenado[index + 1] = aux
 
 
 def pedidos_realizados(listado_pedidos_ordenado: list) -> None:
-    # Pre: Recibe una lista con los pedidos realizados ordenados por fecha.
-    # Post: Muestra los pedidos realizados, en orden de antiguedad y la cantidad de pedidos realizados en numero.
+    '''Pre: Recibe una lista con los pedidos realizados ordenados por fecha.
+    Post: Muestra los pedidos realizados, en orden de antiguedad y la cantidad de pedidos realizados en numero.'''
     numero_pedidos_entregados: int = 0
     numero_de_pedido: int = 0
     for i in range(len(listado_pedidos_ordenado)):
         if listado_pedidos_ordenado[i][0] != numero_de_pedido:
             numero_pedidos_entregados += 1
             numero_de_pedido = listado_pedidos_ordenado[i][0]
-   # Printea la cantidad de pedidos realizados.
+
+    # Printea la cantidad de pedidos realizados.
     print(f"La cantidad de pedidos realizados es: {numero_pedidos_entregados}\n")
     print("A continuación se mostrará la lista por orden de antigüedad:\n")
     for i in range(len(listado_pedidos_ordenado)):
@@ -735,9 +742,10 @@ def pedidos_realizados(listado_pedidos_ordenado: list) -> None:
               f"color: {listado_pedidos_ordenado[i][6]}, cantidad: {listado_pedidos_ordenado[i][7]}, "
               f"descuento: {listado_pedidos_ordenado[i][8]}\n")
 
+
 def pedidos_rosario(lista_pedidos_entregados: list) -> None:
-    # Pre: recibe los pedidos entregados.
-    # Post: filtra los que tienen como ciudad rosario, los muestra y los valoriza.
+    '''Pre: recibe los pedidos entregados.
+    Post: filtra los que tienen como ciudad rosario, los muestra y los valoriza.'''
     pedidos_rosario: list = []  # lista vacia
     precio_botella: int = 15
     precio_vaso: int = 8
@@ -766,15 +774,24 @@ def pedidos_rosario(lista_pedidos_entregados: list) -> None:
     valor_pedido_lista: list = valores_por_pedido(pedidos_rosario)
     for i in range(len(valor_pedido_lista)):
         dicc_valores_por_pedido.update({i + 1: valor_pedido_lista[i]})
+
     if pedidos_rosario == []:
         print("No hay pedidos que fueron entregados en la ciudad de Rosario.")
     elif pedidos_rosario != []:
-        print(f"A continuación se mostrarán los pedidos que fueron entregados en la ciudad de Rosario:\n {pedidos_rosario}")
-        print(f"Se mostrará el valor en dolares de cada pedido entregado con el siguiente formato: Numero de pedido: valor\n{dicc_valores_por_pedido}")
+        print(f"A continuación se mostrarán los pedidos que fueron entregados en la ciudad de Rosario:")
+        for i in range(0, len(pedidos_rosario)):
+            print(f"Fecha: {pedidos_rosario[i][1]}, numero de pedido: {pedidos_rosario[i][0]}, "
+                  f"cliente: {pedidos_rosario[i][2]}, ciudad: {pedidos_rosario[i][3]}, "
+                  f"provincia: {pedidos_rosario[i][4]}, código de articulo: {pedidos_rosario[i][5]}, "
+                  f"color: {pedidos_rosario[i][6]}, cantidad: {pedidos_rosario[i][7]}, "
+                  f"descuento: {pedidos_rosario[i][8]}, valor: {pedidos_rosario[i][10]}\n")
+        print(f"Se mostrará el valor en dolares de cada pedido entregado con el siguiente formato: Numero de pedido:"
+              f" valor\n{dicc_valores_por_pedido}")
+
 
 def valores_por_pedido(pedidos_rosario: list) -> list:
-    #Pre: Recibe una lista con todos los pedidos que fueron entregados en la ciudad de Rosario.
-    #Post: Devuelve la misma lista con el agregado en cada pedido del valor en dolares.
+    '''Pre: Recibe una lista con todos los pedidos que fueron entregados en la ciudad de Rosario.
+    Post: Devuelve la misma lista con el agregado en cada pedido del valor en dolares.'''
     valor_pedido_lista: list = []
     valor_pedido: float = 0
     numero_de_pedido: int = 1
@@ -787,12 +804,15 @@ def valores_por_pedido(pedidos_rosario: list) -> list:
             valor_pedido += pedidos_rosario[i][10]
             numero_de_pedido = pedidos_rosario[i][0]
     valor_pedido_lista.append(valor_pedido)
+    print(valor_pedido_lista)
     return valor_pedido_lista
 
 
 def cantidad_de_productos_pedidos(listado_pedidos: list, productos: dict) -> dict:
-    # Pre: Recibe la lista con los todos los pedidos y un diccionario vacio.
-    # Post: Devuelve el mismo diccionario con la información de cuantos productos fueron pedidos de cada color, en un formato de: diccionario dentro de diccionario.
+    '''Pre: Recibe la lista con los todos los pedidos y un diccionario vacio.
+    Post: Devuelve el mismo diccionario con la información de cuantos productos fueron pedidos de cada color, en un
+    formato de: diccionario dentro de diccionario.
+    '''
     cantidad_botellas: dict = {"verde": 0, "rojo": 0, "azul": 0, "negro": 0, "amarillo": 0}
     cantidad_vasos: dict = {"negro": 0, "azul": 0, }
     for i in range(len(listado_pedidos)):
@@ -808,8 +828,10 @@ def cantidad_de_productos_pedidos(listado_pedidos: list, productos: dict) -> dic
 
 
 def cantidad_de_productos_entregados(lista_pedidos_entregados: list, productos_entregados: dict) -> dict:
-    # Pre:  Recibe la lista con los todos los pedidos entregados y un diccionario vacio.
-    # Post: Devuelve el mismo diccionario con la información de cuantos productos fueron entregados de cada color, en un formato de: diccionario dentro de diccionario.
+    '''Pre:  Recibe la lista con los todos los pedidos entregados y un diccionario vacio.
+    Post: Devuelve el mismo diccionario con la información de cuantos productos fueron entregados de cada color, en un
+    formato de: diccionario dentro de diccionario.
+    '''
     cantidad_botellas_entregadas: dict = {"verde": 0, "rojo": 0, "azul": 0, "negro": 0, "amarillo": 0}
     cantidad_vasos_entregados: dict = {"negro": 0, "azul": 0, }
     for i in range(len(lista_pedidos_entregados)):
@@ -825,8 +847,8 @@ def cantidad_de_productos_entregados(lista_pedidos_entregados: list, productos_e
 
 
 def articulo_mas_pedido(productos: dict, productos_entregados: dict) -> None:
-    # Pre: Recibe el diccionario de productos y productos entregados.
-    # Post: Muestra cual es el articulo mas pedido y cuantos fueron entregados.
+    '''Pre: Recibe el diccionario de productos y productos entregados.
+    Post: Muestra cual es el articulo mas pedido y cuantos fueron entregados.'''
     producto_mas_pedido: str = ""  # inicializo variables
     color: str = ""
     cantidad_producto_mas_pedido: int = 0
@@ -859,18 +881,20 @@ def articulo_mas_pedido(productos: dict, productos_entregados: dict) -> None:
         producto_mas_pedido = "vaso"
         color = "azul"
 
-    if color!= "":
+    if color != "":
         print(
             f"El producto más pedido es: {producto_mas_pedido} de color {color} con {cantidad_producto_mas_pedido} unidades.\n De esa cantidad, {productos_entregados[producto_mas_pedido][color]} fueron entregados.")
 
 
 def volver_menu():
-    #Pre: No hay condiciones previas.
-    #Post: Muestra un mensaje avisando que se volverá al menú. 
+    '''Se usa para volver al menu'''
+    # Pre: No hay condiciones previas.
+    # Post: Muestra un mensaje avisando que se volverá al menú.
     input('Presione ENTER para volver al menu: ')
 
 
 def validar_archivo() -> str:
+    '''Valida la direccion del archivo pedidos.csv'''
     print('Antes de iniciar, por favor, ingrese la ruta en donde se encuentra su archivo de pedidos usando " \ "')
     print('Ejemplo: D:\Documentos\Python Proyectos\prueba')
 
@@ -908,6 +932,7 @@ def determina_recorrido(zona_norte: list, zona_centro: list, zona_sur: list, dir
         while iniciar.isnumeric() is False or int(iniciar) not in (1, 2):
             accion: str = input('Ingrese una opcion valida: ')
 
+
 def procesar_pedido(zona_norte: list, zona_centro: list, zona_sur: list, direccion_archivo: str,
                     contadores_botellas: dict, contadores_vasos: dict) -> list:
     '''Toma las zonas para usarlas en la funcion procesado_pedidos, tambien los contadores para armar pedidos de acuerdo
@@ -919,7 +944,7 @@ def procesar_pedido(zona_norte: list, zona_centro: list, zona_sur: list, direcci
 
     print('\nAguarde, procesando los pedidos...')
 
-    procesado_pedidos(zona_norte, zona_centro, zona_sur, zona_caba, direccion_archivo, 0,
+    direccion_archivo = procesado_pedidos(zona_norte, zona_centro, zona_sur, zona_caba, direccion_archivo, 0,
                       contadores_botellas, contadores_vasos, 0, utilitarios)
 
     listado_pedidos = crea_lista_pedidos(direccion_archivo)
@@ -931,31 +956,34 @@ def procesar_pedido(zona_norte: list, zona_centro: list, zona_sur: list, direcci
 
     return listado_pedidos
 
-def pedidos_completados(listado_pedidos:list , direccion_archivo:str)->None:
 
-    listado_pedidos_ordenado:list
-
+def pedidos_completados(direccion_archivo: str, lista_pedidos_entregados: list) -> None:
+    '''Recibe lista de pedido entregados y direccion del archivo para ejecutar la opcion del menu 4'''
+    listado_pedidos_ordenado: list
     if not os.path.isfile(f'{direccion_archivo}\pedidos_realizados.csv'):
-        print(
-            "Todavia el programa no tiene la información de que pedidos fueron entregados. En el menú, elija la opción \"3\" para actualizar los pedidos entregados.")
+        print("Todavia el programa no tiene la información de que pedidos fueron entregados. En el menú, elija la "
+              "opción \"3\" para actualizar los pedidos entregados.")
     elif os.path.isfile(f'{direccion_archivo}\pedidos_realizados.csv'):
-        listado_pedidos_ordenado= ordenar_pedidos(listado_pedidos)
+        listado_pedidos_ordenado = ordenar_pedidos(lista_pedidos_entregados)
         pedidos_realizados(listado_pedidos_ordenado)
 
 
-def valorizacion_pedidos_rosario(lista_pedidos_entregados:list, direccion_archivo:str )->None:
-
+def valorizacion_pedidos_rosario(lista_pedidos_entregados: list, direccion_archivo: str) -> None:
+    '''Recibe lista de pedido entregados y direccion del archivo para valoriza pedidos de rosario'''
     if not os.path.isfile(f'{direccion_archivo}\pedidos_realizados.csv'):
-        print(
-            "Todavia el programa no tiene la información de que pedidos fueron entregados. En el menú, elija la opción \"3\" para actualizar los pedidos entregados.")
+        print("Todavia el programa no tiene la información de que pedidos fueron entregados. En el menú, elija la "
+              "opción \"3\" para actualizar los pedidos entregados.")
     elif os.path.isfile(f'{direccion_archivo}\pedidos_realizados.csv'):
         pedidos_rosario(lista_pedidos_entregados)
 
-def articulos_mas_pedidos(direccion_archivo:str,lista_pedidos_entregados:list ,productos_entregados:dict , productos:dict ,listado_pedidos:list  )->None:
 
+def articulos_mas_pedidos(direccion_archivo: str, lista_pedidos_entregados: list, productos_entregados: dict,
+                          productos: dict, listado_pedidos: list) -> None:
+    '''Recibe distintas listas y direccion de archivo para ejecutar la opcion del menu 6.
+    Si existe el archivo pedidos_realizados, empieza.'''
     if not os.path.isfile(f'{direccion_archivo}\pedidos_realizados.csv'):
-        print(
-            "Todavia el programa no tiene la información de que pedidos fueron entregados. En el menú, elija la opción \"3\" para actualizar los pedidos entregados.")
+        print("Todavia el programa no tiene la información de que pedidos fueron entregados. En el menú, elija la "
+              "opción \"3\" para actualizar los pedidos entregados.")
     elif os.path.isfile(f'{direccion_archivo}\pedidos_realizados.csv'):
         cantidad_de_productos_pedidos(listado_pedidos, productos)
         cantidad_de_productos_entregados(lista_pedidos_entregados, productos_entregados)
@@ -964,16 +992,16 @@ def articulos_mas_pedidos(direccion_archivo:str,lista_pedidos_entregados:list ,p
 
 def imprimir_menu(zona_norte: list, zona_centro: list, zona_sur: list, direccion_archivo: str, productos: dict,
                   productos_entregados: dict, contadores_botellas: dict, contadores_vasos: dict):
-    '''Pre: Recibe varios diccionarios y un string, entre esos son: Ubicaciones de distintas provincias dividias en zona 
-    norte, central y sur; una dirección de archivos (string), y dos diccionarios vacios que se usarán en las funciones.
+    '''Pre: Recibe las listas divididas en zona norte, centro y sur; una dirección de archivos (string), y dos
+    diccionarios vacios que se usarán en las funciones. Ademas de los contadores de stock.
     Post: Muestra el menú y deja al usuario decidir que función quiere ejecutar mediante el uso de opciones numéricas. 
     Dependiendo la opción decidida, se mostrará la información correspondiente hasta que el usuario decida salir del menú.'''
-    cerrar_menu:bool = False
-    accion:str
-    opcion:str
+    cerrar_menu: bool = False
+    accion: str
+    opcion: str
     lista_pedidos_no_entregados: list = []
     lista_pedidos_entregados: list = []
-    listado_pedidos:list=[]
+    listado_pedidos: list = []
 
     while cerrar_menu == False:
 
@@ -986,10 +1014,9 @@ def imprimir_menu(zona_norte: list, zona_centro: list, zona_sur: list, direccion
                     5.Pedidos de Rosario con su valorización
                     6.Artículo más pedido y cuantos fueron entregados
                     7.salir
-                   
+
 
                     Elija opcion escribiendo el numero correspondiente: """)
-
 
         while accion.isnumeric() is False or int(accion) not in (1, 2, 3, 4, 5, 6, 7):
             accion = input('Ingrese una opcion valida: ')
@@ -1013,16 +1040,17 @@ def imprimir_menu(zona_norte: list, zona_centro: list, zona_sur: list, direccion
 
         elif int(accion) == 4:
 
-            pedidos_completados(listado_pedidos, direccion_archivo)
+            pedidos_completados(direccion_archivo, lista_pedidos_entregados)
             volver_menu()
 
         elif int(accion) == 5:
 
-            valorizacion_pedidos_rosario(lista_pedidos_entregados,direccion_archivo)
+            valorizacion_pedidos_rosario(lista_pedidos_entregados, direccion_archivo)
             volver_menu()
 
         elif int(accion) == 6:
-            articulos_mas_pedidos(direccion_archivo,lista_pedidos_entregados,productos_entregados,productos , listado_pedidos)
+            articulos_mas_pedidos(direccion_archivo, lista_pedidos_entregados, productos_entregados, productos,
+                                  listado_pedidos)
             volver_menu()
 
         else:
@@ -1031,7 +1059,6 @@ def imprimir_menu(zona_norte: list, zona_centro: list, zona_sur: list, direccion
 
 
 def main():
-
     productos: dict = {}
     productos_entregados: dict = {}
     contadores_botellas: dict = {"Verde": 0, "Negro": 0, "Rojo": 0, "Azul": 0, "Amarillo": 0}
@@ -1045,16 +1072,14 @@ def main():
 
     zona_sur: list = ['chubut', 'rio negro', 'santa cruz', 'tierra del fuego']
 
-
     folder: str = os.getcwd() + "\Lote0001"
 
     imagenes_carpeta(folder, contadores_botellas, contadores_vasos)
+    cantidades_txt(contadores_botellas, contadores_vasos)
     direccion_archivo: str = validar_archivo()
     normaliza_pedidos(direccion_archivo, contadores_botellas, contadores_vasos)
     imprimir_menu(zona_norte, zona_centro, zona_sur, direccion_archivo, productos, productos_entregados,
                   contadores_botellas, contadores_vasos)
-    cantidades_txt(contadores_botellas, contadores_vasos)
 
 
 main()
-
