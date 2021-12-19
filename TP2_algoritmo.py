@@ -46,6 +46,23 @@ def detect_objects(img, net, outputLayers):
 
 
 def get_box_dimensions(outputs, height, width) -> tuple:
+    """ Esta funcion recibe como parametro :
+
+    outputs: Recibe una lista anidada que contiene información sobre todos los objetos detectados asi como tambien la altura
+    y el ancho del cuadro delimitador,la confianza y las puntuaciones para todas las clases de objetos enumerados en coco.names.
+
+    height:Altura de la imagen
+
+    width: Ancho de la imagen
+
+    Retorna una tupla, compuesta por tres lista:
+    
+    confs: con todos los cuadros delimitadores previstos con una confianza de más del 30 %.
+    boxes:los vértices del cuadro delimitador
+    class_id : índice de clase del objeto predicha
+
+    """
+
     boxes = []
     confs = []
     class_ids = []
@@ -69,7 +86,8 @@ def get_box_dimensions(outputs, height, width) -> tuple:
 
 
 def draw_labels(boxes, confs, colors, class_ids, classes, img) -> str:
-    # Pre: Recibe varias las lista puntuaciones que almacena la confianza correspondiente a cada objeto y la lista de puntuacion del mismo
+    
+    # Pre: Recibe varias listas la de puntuaciones que almacena la confianza correspondiente a cada objeto y la lista de puntuacion del mismo
     # Pos: Retorna el objeto detectado
 
     indexes = cv2.dnn.NMSBoxes(boxes, confs, 0.5, 0.4)
@@ -79,6 +97,7 @@ def draw_labels(boxes, confs, colors, class_ids, classes, img) -> str:
             label = str(classes[class_ids[i]])
 
     return label
+
 
 
 def image_detect(img_path) -> tuple:
