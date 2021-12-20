@@ -744,37 +744,30 @@ def pedidos_realizados(listado_pedidos_ordenado: list) -> None:
 
 
 def pedidos_rosario(lista_pedidos_entregados: list) -> None:
-    '''Pre: recibe los pedidos entregados.
-    Post: filtra los que tienen como ciudad rosario, los muestra y los valoriza.'''
-    pedidos_rosario: list = []  # lista vacia
+    #Pre: recibir los pedidos completados
+    #Post: filtrea los que tienen como ciudad rosario, los muestra y los valoriza
+    pedidos_rosario : list = [] #lista vacia
     precio_botella: int = 15
     precio_vaso: int = 8
-    dicc_valores_por_pedido: dict = {}
-    for i in range(len(lista_pedidos_entregados)):  # recorro dicc
-        if lista_pedidos_entregados[i][3] == "Rosario":  # si la ciudad es Rosario
-            pedidos_rosario.append(lista_pedidos_entregados[i])  # Lo agrega a la lista vacia
+    for i in range(len(lista_pedidos_entregados)): #recorro dicc
+        if lista_pedidos_entregados[i][3] == "Rosario": #si la ciudad es Rosario
+            pedidos_rosario.append(lista_pedidos_entregados[i]) # Lo agrega a la lista vacia
     for i in range(len(pedidos_rosario)):
         valor_producto: float = 0
-        if pedidos_rosario[i][5] == 1334:  # si es una botella
-            try:  # si aplica descuento
-                valor_producto += precio_botella * pedidos_rosario[i][7] - (15 * pedidos_rosario[i][7]) / \
-                                  pedidos_rosario[i][8]  # valor_producto * cantidad de producto pedido - descuento
+        if pedidos_rosario[i][5] == 1334: #si es una botella
+            try: #si aplica descuento
+                valor_producto += precio_botella * pedidos_rosario[i][7] - (15 * pedidos_rosario[i][7]) / pedidos_rosario[i][8] # valor_producto * cantidad de producto pedido - descuento
                 pedidos_rosario[i].append(valor_producto)
-            except ZeroDivisionError:  # si no aplica descuento
+            except ZeroDivisionError: #si no aplica descuento
                 valor_producto += precio_botella * pedidos_rosario[i][7]
                 pedidos_rosario[i].append(valor_producto)
-        elif pedidos_rosario[i][5] == 568:  # si es un vaso
-            try:
-                valor_producto += precio_vaso * pedidos_rosario[i][7] - (15 * pedidos_rosario[i][7]) / \
-                                  pedidos_rosario[i][8]
+        elif pedidos_rosario[i][5] == 568: #si es un vaso
+            try: 
+                valor_producto += precio_vaso * pedidos_rosario[i][7] - (15 * pedidos_rosario[i][7]) / pedidos_rosario[i][8]
                 pedidos_rosario[i].append(valor_producto)
             except ZeroDivisionError:
                 valor_producto += precio_botella * pedidos_rosario[i][7]
                 pedidos_rosario[i].append(valor_producto)
-    valor_pedido_lista: list = valores_por_pedido(pedidos_rosario)
-    for i in range(len(valor_pedido_lista)):
-        dicc_valores_por_pedido.update({i + 1: valor_pedido_lista[i]})
-
     if pedidos_rosario == []:
         print("No hay pedidos que fueron entregados en la ciudad de Rosario.")
     elif pedidos_rosario != []:
@@ -785,28 +778,11 @@ def pedidos_rosario(lista_pedidos_entregados: list) -> None:
                   f"provincia: {pedidos_rosario[i][4]}, código de articulo: {pedidos_rosario[i][5]}, "
                   f"color: {pedidos_rosario[i][6]}, cantidad: {pedidos_rosario[i][7]}, "
                   f"descuento: {pedidos_rosario[i][8]}, valor: {pedidos_rosario[i][10]}\n")
+        
         print(f"Se mostrará el valor en dolares de cada pedido entregado con el siguiente formato: Numero de pedido:"
-              f" valor\n{dicc_valores_por_pedido}")
-
-
-def valores_por_pedido(pedidos_rosario: list) -> list:
-    '''Pre: Recibe una lista con todos los pedidos que fueron entregados en la ciudad de Rosario.
-    Post: Devuelve la misma lista con el agregado en cada pedido del valor en dolares.'''
-    valor_pedido_lista: list = []
-    valor_pedido: float = 0
-    numero_de_pedido: int = 1
-    for i in range(len(pedidos_rosario)):
-        if pedidos_rosario[i][0] == numero_de_pedido:
-            valor_pedido += pedidos_rosario[i][10]
-        else:
-            valor_pedido_lista.append(valor_pedido)
-            valor_pedido = 0
-            valor_pedido += pedidos_rosario[i][10]
-            numero_de_pedido = pedidos_rosario[i][0]
-    valor_pedido_lista.append(valor_pedido)
-    print(valor_pedido_lista)
-    return valor_pedido_lista
-
+              f" valor\n")
+        for i in range(0, len(pedidos_rosario)):
+            print(f"Pedido número {pedidos_rosario[i][0]}: {pedidos_rosario[i][10]}\n")
 
 def cantidad_de_productos_pedidos(listado_pedidos: list, productos: dict) -> dict:
     '''Pre: Recibe la lista con los todos los pedidos y un diccionario vacio.
